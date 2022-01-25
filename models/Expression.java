@@ -1,7 +1,7 @@
 package models;
 
 abstract class Expression {
-    abstract void accept(ExpressionVisitor v);
+    abstract void accept(Visitor v);
 
     static class Literal extends Expression {
         final Object _value;
@@ -11,7 +11,7 @@ abstract class Expression {
         }
 
         @Override
-        void accept(ExpressionVisitor v) {
+        void accept(Visitor v) {
             v.visitLiteral(this);
         }
     }
@@ -24,7 +24,7 @@ abstract class Expression {
         }
 
         @Override
-        void accept(ExpressionVisitor v) {
+        void accept(Visitor v) {
             v.visitGrouping(this);
         }
     }
@@ -39,7 +39,7 @@ abstract class Expression {
         }
 
         @Override
-        void accept(ExpressionVisitor v) {
+        void accept(Visitor v) {
             v.visitUnary(this);
         }
     }
@@ -56,12 +56,12 @@ abstract class Expression {
         }
 
         @Override
-        void accept(ExpressionVisitor v) {
+        void accept(Visitor v) {
             v.visitBinary(this);
         }
     }
 
-    interface ExpressionVisitor {
+    interface Visitor {
         void visitLiteral(Literal instance);
 
         void visitGrouping(Grouping instance);
