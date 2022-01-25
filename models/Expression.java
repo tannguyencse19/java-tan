@@ -1,6 +1,10 @@
 package models;
 
-abstract class Expression {
+public abstract class Expression {
+    /**
+     * @implNote Why param type is Visitor ? To access the interface methods and for
+     *           passing nested arguments.
+     */
     abstract <T> T accept(Visitor<T> v);
 
     static class Literal extends Expression {
@@ -12,7 +16,8 @@ abstract class Expression {
 
         @Override
         <T> T accept(Visitor<T> v) {
-            return v.visitLiteral(this);
+            return v.visitLiteral(this); // NOTE: this == object which call this method
+                                        // try debugging ASTPrint.java 
         }
     }
 
@@ -61,6 +66,16 @@ abstract class Expression {
         }
     }
 
+    /**
+     * @param T - Return type of methods.
+     * @implNote
+     *           Interface == Abstract class WITH ONLY method prototypes.
+     *           <p />
+     *           These method will be implemented by other class (i.e: ASTPrint
+     *           implement Expression.Visitor<String>)
+     *
+     * @see https://www.w3schools.com/java/java_interface.asp
+     */
     interface Visitor<T> {
         T visitLiteral(Literal instance);
 
