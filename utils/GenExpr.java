@@ -54,13 +54,13 @@ public class GenExpr {
         /* --------- start main class --------- */
         {
             // NOTE: Visitor Design Pattern
-            writer.println("abstract void accept(" + "Visitor v);");
+            writer.println("abstract <T> T accept(" + "Visitor<T> v);");
 
             List<String> production_name_list = defineProduction(writer, filename, grammar);
 
-            writer.println("interface Visitor {");
+            writer.println("interface Visitor<T> {");
             for (String name : production_name_list) {
-                writer.println("void visit" + name + "(" + name + " instance);");
+                writer.println("T visit" + name + "(" + name + " instance);");
             }
             writer.println("}");
         }
@@ -108,8 +108,8 @@ public class GenExpr {
                 writer.println("}");
 
                 writer.println("@Override");
-                writer.println("void accept(" + "Visitor v) {");
-                writer.println("v.visit" + production_name + "(this);");
+                writer.println("<T> T accept(" + "Visitor<T> v) {");
+                writer.println("return v.visit" + production_name + "(this);");
                 writer.println("}");
             }
             writer.println("}\n");
