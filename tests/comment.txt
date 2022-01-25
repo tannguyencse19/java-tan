@@ -1,0 +1,11 @@
+int main() {
+    // Your compiler shoudn't read this line
+    var a = 1;
+    var b = 2; /* and this */ var c = 3;
+    /*
+        Also
+        /*
+            nested is not allowed
+        */
+    */
+}
