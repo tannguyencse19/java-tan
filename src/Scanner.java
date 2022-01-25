@@ -1,5 +1,6 @@
 package src;
 
+import java.lang.annotation.Inherited;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -196,7 +197,6 @@ public class Scanner {
     private void addToken(TokenType type, String i_lexeme) {
         tokenList.add(new Token(type, i_lexeme, line));
     }
-
     private void addToken(TokenType type, int i_start, int i_current) {
         String lexeme = source.substring(i_start, i_current);
         tokenList.add(new Token(type, lexeme, line));
