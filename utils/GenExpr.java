@@ -50,7 +50,7 @@ public class GenExpr {
 
         writer.println("package models;\n");
 
-        writer.println("abstract class " + filename + " {");
+        writer.println("public abstract class " + filename + " {");
         /* --------- start main class --------- */
         {
             // NOTE: Visitor Design Pattern
@@ -93,14 +93,14 @@ public class GenExpr {
             }
 
             /* --------- start subclass --------- */
-            writer.println("static class " + production_name + " extends Expression {");
+            writer.println("public static class " + production_name + " extends Expression {");
             {
                 for (int idx = 0; idx < param_name.size(); idx++) {
                     writer.println("final " + param_type.get(idx) + " _" + param_name.get(idx) + ";");
                 }
 
                 // Constructor
-                writer.println(production_name + "(" + production_params + ") {");
+                writer.println("public " + production_name + "(" + production_params + ") {");
                 for (int idx = 0; idx < param_name.size(); idx++) {
                     // Why use get? // NOTE: https://stackoverflow.com/a/18814651/12897204
                     writer.println("_" + param_name.get(idx) + " = " + param_name.get(idx) + ";");

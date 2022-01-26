@@ -21,4 +21,19 @@ public class Token {
     public String toString() {
         return _lexeme + ' ' + _type + ' ' + _lineID;
     }
+
+    /* --------- Helper function --------- */
+    // NOTE: There are no set methods due to variable declare as "final"
+
+    public TokenType getType() {
+        return _type;
+    }
+
+    public String getLexeme() {
+        return _lexeme;
+    }
+
+    public Number getLineID() {
+        return _lineID;
+    }
 }

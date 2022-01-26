@@ -7,24 +7,24 @@ public abstract class Expression {
      */
     abstract <T> T accept(Visitor<T> v);
 
-    static class Literal extends Expression {
+    public static class Literal extends Expression {
         final Object _value;
 
-        Literal(Object value) {
+        public Literal(Object value) {
             _value = value;
         }
 
         @Override
         <T> T accept(Visitor<T> v) {
             return v.visitLiteral(this); // NOTE: this == object which call this method
-                                        // try debugging ASTPrint.java 
+                                         // try debugging ASTPrint.java
         }
     }
 
-    static class Grouping extends Expression {
+    public static class Grouping extends Expression {
         final Expression _expr;
 
-        Grouping(Expression expr) {
+        public Grouping(Expression expr) {
             _expr = expr;
         }
 
@@ -34,11 +34,11 @@ public abstract class Expression {
         }
     }
 
-    static class Unary extends Expression {
+    public static class Unary extends Expression {
         final Token _operator;
         final Expression _expr;
 
-        Unary(Token operator, Expression expr) {
+        public Unary(Token operator, Expression expr) {
             _operator = operator;
             _expr = expr;
         }
@@ -49,12 +49,12 @@ public abstract class Expression {
         }
     }
 
-    static class Binary extends Expression {
+    public static class Binary extends Expression {
         final Expression _lhs;
         final Token _operator;
         final Expression _rhs;
 
-        Binary(Expression lhs, Token operator, Expression rhs) {
+        public Binary(Expression lhs, Token operator, Expression rhs) {
             _lhs = lhs;
             _operator = operator;
             _rhs = rhs;

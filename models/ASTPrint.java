@@ -1,10 +1,11 @@
 package models;
 
-import models.Expression.*;
 import static models.TokenType.*;
 
 import java.util.Iterator;
 import java.util.Stack;
+
+import models.Expression.*; // FIX: Bad usage - https://stackoverflow.com/a/421127/12897204
 
 /**
  * Postfix Traversal
@@ -45,7 +46,7 @@ public class ASTPrint implements Visitor<String> {
 
     @Override
     public String visitUnary(Unary instance) {
-        return parenthensize(instance._operator._lexeme, instance._expr);
+        return parenthensize(instance._operator._lexeme, instance._expr); // NOTE: access duoc ._lexeme o day vi chung package
 
     }
 

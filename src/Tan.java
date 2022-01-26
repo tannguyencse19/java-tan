@@ -43,7 +43,10 @@ public class Tan {
         // if (err.hasError())
         // System.exit(65); // FIX: Define code 65
 
-        Parser par = new Parser(tokenList);
+        for (Token token : tokenList) { // TEST
+            System.out.println(token);
+        }
+        // Parser par = new Parser(tokenList);
     }
 
     /* --------- Helper function --------- */
@@ -62,7 +65,7 @@ public class Tan {
      */
     private static void modeFile(String file) throws IOException {
         System.out.println("\ntan " + file + "\n");
-        byte[] content = Files.readAllBytes(Paths.get("tests/integration.txt")); // TODO: Debug
+        byte[] content = Files.readAllBytes(Paths.get("tests/parser/factor.txt")); // TODO: Debug
 
         // System.out.println(new String(content)); // test
         run(new String(content, Charset.defaultCharset()));
