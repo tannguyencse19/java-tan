@@ -3,6 +3,9 @@ package models;
 import models.Expression.*;
 import static models.TokenType.*;
 
+import java.util.Iterator;
+import java.util.Stack;
+
 /**
  * Postfix Traversal
  *
@@ -53,17 +56,26 @@ public class ASTPrint implements Visitor<String> {
 
     /* --------- Helper function --------- */
 
+    final static Stack<String> test = new Stack<String>();
+
     private String parenthensize(String operator, Expression... exprArr) {
         StringBuilder result = new StringBuilder(); // NOTE: https://stackoverflow.com/a/5234160/12897204
 
-        result.append("(").append(operator);
+        result.append("("); // CAUTION: First time runner - This is why operator keep appear at the first position
         for (Expression e : exprArr) {
-            result.append(" ");
-
+            // result.append(" ");
             // NOTE: Recursion of postfix traversal here
-            result.append(e.accept(this));
+            // result.append(e.accept(this));
+
+            // TEST: Prefix traversal
+            test.add(e.accept(this));
         }
-        result.append(")");
+        Iterator it = test.iterator();
+        while (it.hasNext()) {
+            result.append(" ");
+            result.append(it.next());
+        }
+        result.append(operator).append(")");
         return result.toString();
     }
 
