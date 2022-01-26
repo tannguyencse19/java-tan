@@ -114,10 +114,9 @@ public class Parser {
         else if (matchOnce(NUMBER, STRING))
             return new Literal(prevToken().getLexeme());
         else if (matchOnce(LEFT_PARAN)) {
-            int lineID = prevToken().getLineID();
             Expression e = expression();
-            if (!isNextToken(RIGHT_PARAN))
-                ; // Tan.err.report(lineID, "missing ')'"); // FIX: Comment out when finish
+            panicErrHandle(RIGHT_PARAN);
+
             return new Grouping(e);
         } else {
             Token err = prevToken();
@@ -161,6 +160,18 @@ public class Parser {
     }
 
     /**
+     *
+     * @param offset - for currentToken, offset = 0 due to in {@link #advance()}
+     *               current++ before {@link #getToken(int)}
+     */
+    private Token getToken(int offset) {
+        if (current == 0)
+            return tokenList.get(0);
+
+        return tokenList.get(current - 1 + offset);
+    }
+
+    /**
      * @implNote Must seperate from {@link #getToken} because function can only
      *           return 1 type of value
      */
@@ -169,14 +180,20 @@ public class Parser {
         return getToken(0).getType() == EOF;
     }
 
-    /**
-     *
-     * @param offset - for currentToken, offset = 0 due to in {@link #advance()}
-     *               current++ before {@link #getToken(int)}
-     */
-    private Token getToken(int offset) {
-        if (current == 0) return tokenList.get(0);
+    /* --------- Error handle --------- */
 
-        return tokenList.get(current - 1 + offset);
+    public ParseError panicErrHandle(TokenType expected) {
+        if (isNextToken(expected))
+            advanced(); // = continue parsing
+
+        // NOTE: "return", not "throw", which will cause err.stackTrace()!
+        return new ParseError(getToken(1), "expect ')' after expression");
     }
+
+    private class ParseError extends RuntimeException {
+        ParseError(Token err, String message) {
+            Tan.err.report(err, message);
+        }
+    };
+
 }
