@@ -16,7 +16,7 @@ public enum TokenType {
     OBJECT,
 
     // Keywords
-    // IDENTIFER: ten bien
+    // IDENTIFIER: ten bien
     TRUE, FALSE,
     IDENTIFIER, VAR,
     PRINT,

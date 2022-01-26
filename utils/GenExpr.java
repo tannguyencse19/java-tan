@@ -54,11 +54,25 @@ public class GenExpr {
         /* --------- start main class --------- */
         {
             // NOTE: Visitor Design Pattern
-            writer.println("abstract <T> T accept(" + "Visitor<T> v);");
+            /**
+             * @implNote Why param type is Visitor ? To access the interface methods and for
+             *           passing nested arguments.
+             */
+            writer.println("public abstract <T> T accept(" + "Visitor<T> v);");
 
             List<String> production_name_list = defineProduction(writer, filename, grammar);
 
-            writer.println("interface Visitor<T> {");
+            /**
+             * @param T - Return type of methods.
+             * @implNote
+             *           Interface == Abstract class WITH ONLY method prototypes.
+             *           <p />
+             *           These method will be implemented by other class (i.e: ASTPrint
+             *           implement Expression.Visitor<String>)
+             *
+             * @see https://www.w3schools.com/java/java_interface.asp
+             */
+            writer.println("public interface Visitor<T> {");
             for (String name : production_name_list) {
                 writer.println("T visit" + name + "(" + name + " instance);");
             }
@@ -96,7 +110,7 @@ public class GenExpr {
             writer.println("public static class " + production_name + " extends Expression {");
             {
                 for (int idx = 0; idx < param_name.size(); idx++) {
-                    writer.println("final " + param_type.get(idx) + " _" + param_name.get(idx) + ";");
+                    writer.println("public final " + param_type.get(idx) + " _" + param_name.get(idx) + ";");
                 }
 
                 // Constructor
@@ -108,7 +122,7 @@ public class GenExpr {
                 writer.println("}");
 
                 writer.println("@Override");
-                writer.println("<T> T accept(" + "Visitor<T> v) {");
+                writer.println("public <T> T accept(" + "Visitor<T> v) {");
                 writer.println("return v.visit" + production_name + "(this);");
                 writer.println("}");
             }

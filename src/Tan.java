@@ -8,7 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import models.Expression;
 import models.Token;
+import utils.ASTPrint;
 
 /**
  * main
@@ -43,10 +45,9 @@ public class Tan {
         // if (err.hasError())
         // System.exit(65); // FIX: Define code 65
 
-        for (Token token : tokenList) { // TEST
-            System.out.println(token);
-        }
-        // Parser par = new Parser(tokenList);
+        Parser par = new Parser(tokenList);
+        Expression AST = par.getAST(); // NOTE: For debug
+        new ASTPrint().print(AST);
     }
 
     /* --------- Helper function --------- */
@@ -65,7 +66,7 @@ public class Tan {
      */
     private static void modeFile(String file) throws IOException {
         System.out.println("\ntan " + file + "\n");
-        byte[] content = Files.readAllBytes(Paths.get("tests/parser/factor.txt")); // TODO: Debug
+        byte[] content = Files.readAllBytes(Paths.get("tests/parser/mix_2.txt")); // TODO: Debug
 
         // System.out.println(new String(content)); // test
         run(new String(content, Charset.defaultCharset()));

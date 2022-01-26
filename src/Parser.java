@@ -1,6 +1,5 @@
 package src;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import models.Token;
@@ -9,6 +8,7 @@ import models.Expression;
 import models.Expression.Literal;
 import models.Expression.Unary;
 import models.Expression.Binary;
+import models.Expression.Grouping;
 
 import static models.TokenType.*;
 
@@ -23,17 +23,20 @@ public class Parser {
     // constructor
     Parser(List<Token> tokenList) {
         this.tokenList = tokenList;
-
         // for (Token token : tokenList) { // TEST
         // System.out.println(token);
         // }
+    }
+
+    public Expression getAST() {
+        return expression();
     }
 
     public Expression expression() {
         return equality();
     }
 
-    public Expression equality() {
+    private Expression equality() {
         // i.e: equality -> comparison ( ("!=" | "==") comparison )* ;
         // Moi vao phai lay lhs comparison
         Expression lhs = comparison();
@@ -55,24 +58,80 @@ public class Parser {
         return lhs;
     }
 
-    public Expression comparison() {
+    private Expression comparison() {
         Expression lhs = term();
 
         while (matchOnce(MORE, MORE_EQUAL, LESS, LESS_EQUAL)) {
             Token operator = prevToken();
             Expression rhs = term();
-            lhs = new Binary(lhs, operator, rhs); // comparison ( ("!=" | "==") comparison
+            lhs = new Binary(lhs, operator, rhs);
         }
 
         return lhs;
     }
 
-    public void primary(Unary token) {
+    private Expression term() {
+        Expression lhs = factor();
 
+        while (matchOnce(PLUS, SUBTRACT)) {
+            Token operator = prevToken();
+            Expression rhs = factor();
+            lhs = new Binary(lhs, operator, rhs);
+        }
+
+        return lhs;
+    }
+
+    private Expression factor() {
+        Expression lhs = unary();
+
+        while (matchOnce(DIVIDE, MULTIPLY)) {
+            Token operator = prevToken();
+            Expression rhs = unary();
+            lhs = new Binary(lhs, operator, rhs);
+        }
+
+        return lhs;
+    }
+
+    private Expression unary() {
+        while (matchOnce(LOGIC_NOT, SUBTRACT)) {
+            Token operator = prevToken();
+            Expression rhs = unary();
+            return new Unary(operator, rhs);
+        }
+
+        return primary();
+    }
+
+    private Expression primary() {
+        if (matchOnce(FALSE))
+            return new Literal(false);
+        else if (matchOnce(TRUE))
+            return new Literal(true);
+        else if (matchOnce(NIL))
+            return new Literal(null);
+        else if (matchOnce(NUMBER, STRING))
+            return new Literal(prevToken().getLexeme());
+        else if (matchOnce(LEFT_PARAN)) {
+            int lineID = prevToken().getLineID();
+            Expression e = expression();
+            if (!isNextToken(RIGHT_PARAN))
+                ; // Tan.err.report(lineID, "missing ')'"); // FIX: Comment out when finish
+            return new Grouping(e);
+        } else {
+            Token err = prevToken();
+            // Tan.err.report(err.getLineID(), "unexpected character: " + err.getLexeme());
+            // // FIX: Comment out when finish
+            return new Literal(null);
+        }
     }
 
     /* --------- Helper function --------- */
 
+    /**
+     * @implNote If match, that token will be <b>SKIP</b> due to ++current
+     */
     private boolean matchOnce(TokenType... typeList) {
         for (TokenType type : typeList) {
             if (isNextToken(type) && !endOfFile()) {
@@ -116,6 +175,8 @@ public class Parser {
      *               current++ before {@link #getToken(int)}
      */
     private Token getToken(int offset) {
+        if (current == 0) return tokenList.get(0);
+
         return tokenList.get(current - 1 + offset);
     }
 }
