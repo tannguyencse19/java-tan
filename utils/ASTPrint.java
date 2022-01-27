@@ -2,6 +2,9 @@ package utils;
 
 import static models.TokenType.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import models.Expression;
 import models.Token;
 import models.Expression.*; // FIX: Bad usage - https://stackoverflow.com/a/421127/12897204
@@ -28,6 +31,8 @@ public class ASTPrint implements Visitor<String> {
         System.out.println(start(AST));
     }
 
+    /* ---------------- Implemented function -------------------- */
+
     @Override
     public String visitLiteral(Literal instance) {
         if (instance._value == null)
@@ -46,7 +51,6 @@ public class ASTPrint implements Visitor<String> {
     public String visitUnary(Unary instance) {
         return parenthensize(instance._operator.getLexeme(), instance._expr); // NOTE: access duoc .getLexeme() o day vi
                                                                               // chung package
-
     }
 
     @Override
@@ -54,13 +58,20 @@ public class ASTPrint implements Visitor<String> {
         return parenthensize(instance._operator.getLexeme(), instance._lhs, instance._rhs);
     }
 
+    @Override
+    public String visitTernary(Ternary instance) {
+        // Right-to-left
+        return parenthensize(instance._operator.getLexeme(), instance._rhs_second, instance._rhs_first, instance._lhs); // right to left
+    }
+
     /* --------- Helper function --------- */
 
     private String parenthensize(String operator, Expression... exprArr) {
         StringBuilder result = new StringBuilder(); // NOTE: https://stackoverflow.com/a/5234160/12897204
 
-        result.append("(").append(operator); // CAUTION: First time runner - This is why operator keep appear at the first
-                            // position
+        result.append("(").append(operator); // CAUTION: First time runner - This is why operator keep appear at the
+                                             // first
+        // position
         for (Expression e : exprArr) {
             result.append(" ");
 
@@ -71,7 +82,7 @@ public class ASTPrint implements Visitor<String> {
         return result.toString();
     }
 
-    String start(Expression e) {
+    private String start(Expression e) {
         // NOTE: https://gist.github.com/tannguyencse19/4c64c53e6f49fb368a5d1b712d1be0fe
         return e.accept(this);
     }

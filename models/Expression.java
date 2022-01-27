@@ -61,6 +61,25 @@ public abstract class Expression {
         }
     }
 
+    public static class Ternary extends Expression {
+        public final Expression _lhs;
+        public final Token _operator;
+        public final Expression _rhs_first;
+        public final Expression _rhs_second;
+
+        public Ternary(Expression lhs, Token operator, Expression rhs_first, Expression rhs_second) {
+            _lhs = lhs;
+            _operator = operator;
+            _rhs_first = rhs_first;
+            _rhs_second = rhs_second;
+        }
+
+        @Override
+        public <T> T accept(Visitor<T> v) {
+            return v.visitTernary(this);
+        }
+    }
+
     public interface Visitor<T> {
         T visitLiteral(Literal instance);
 
@@ -69,5 +88,7 @@ public abstract class Expression {
         T visitUnary(Unary instance);
 
         T visitBinary(Binary instance);
+
+        T visitTernary(Ternary instance);
     }
 }

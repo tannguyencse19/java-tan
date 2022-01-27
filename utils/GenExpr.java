@@ -29,8 +29,8 @@ public class GenExpr {
                 "Literal: Object value", // NOTE: Object is the root of all types => Abstract type
                 "Grouping: Expression expr",
                 "Unary: Token operator, Expression expr",
-                "Binary: Expression lhs, Token operator, Expression rhs"));
-
+                "Binary: Expression lhs, Token operator, Expression rhs",
+                "Ternary: Expression lhs, Token operator, Expression rhs_first, Expression rhs_second"));
     }
 
     /* --------- Helper function --------- */

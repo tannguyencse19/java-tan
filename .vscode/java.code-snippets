@@ -19,7 +19,7 @@
 		"scope": "java",
 		"prefix": "block_comment",
 		"body": [
-			"/* --------- ${1:Helper function} --------- */",
+			"/* ---------------- ${1:Helper function} -------------------- */",
 		],
 		"description": "Generate comment for a block of codes"
 	}
