@@ -28,6 +28,8 @@ public class ASTPrint implements Visitor<String> {
         System.out.println(start(AST));
     }
 
+    /* ---------------- Implemented function -------------------- */
+
     @Override
     public String visitLiteral(Literal instance) {
         if (instance._value == null)
@@ -59,8 +61,9 @@ public class ASTPrint implements Visitor<String> {
     private String parenthensize(String operator, Expression... exprArr) {
         StringBuilder result = new StringBuilder(); // NOTE: https://stackoverflow.com/a/5234160/12897204
 
-        result.append("(").append(operator); // CAUTION: First time runner - This is why operator keep appear at the first
-                            // position
+        result.append("(").append(operator); // CAUTION: First time runner - This is why operator keep appear at the
+                                             // first
+        // position
         for (Expression e : exprArr) {
             result.append(" ");
 
@@ -71,7 +74,7 @@ public class ASTPrint implements Visitor<String> {
         return result.toString();
     }
 
-    String start(Expression e) {
+    private String start(Expression e) {
         // NOTE: https://gist.github.com/tannguyencse19/4c64c53e6f49fb368a5d1b712d1be0fe
         return e.accept(this);
     }

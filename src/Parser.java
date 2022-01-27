@@ -37,10 +37,23 @@ public class Parser {
         }
     }
 
-    /* --------- Backbone function --------- */
+    /* ----------------- Backbone function ------------------- */
 
     private Expression expression() {
-        return equality();
+        // return logicOR(commaOperator(), equality());
+        return commaOperator();
+    }
+
+    private Expression commaOperator() {
+        Expression lhs = equality();
+
+        while (matchOnce(COMMA)) {
+            Token operator = prevToken();
+            Expression rhs = equality();
+            lhs = new Binary(lhs, operator, rhs);
+        }
+
+        return lhs;
     }
 
     private Expression equality() {
@@ -133,7 +146,7 @@ public class Parser {
         }
     }
 
-    /* --------- Helper function --------- */
+    /* -------------------- Helper function --------------------- */
 
     /**
      * @implNote If match, that token will be <b>SKIP</b> due to ++current
@@ -201,11 +214,11 @@ public class Parser {
      * @param expected - Give second-chance. If the next token match, then it won't
      *                 throw.
      */
-    private ParseError throwError(TokenType expected, String message) {
-        if (isNextToken(expected))
+    private void throwError(TokenType expected, String message) {
+        if (prevToken().getType() == expected || isNextToken(expected))
             advanced(); // = continue parsing
-
-        throw new ParseError(getToken(1), message);
+        else
+            throw new ParseError(getToken(1), message);
     }
 
     private class ParseError extends RuntimeException {
