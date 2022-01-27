@@ -26,4 +26,19 @@ public enum TokenType {
     FUNCTION, RETURN,
     CLASS,
     EOF,
+
+    // Others
+    /**
+     * Example:
+     * <pre>
+     * private TokenType match(TokenType type) {
+     *     if (isNextToken(type)) {
+     *         return type;
+     *     }
+     *
+     *     return NONE;
+     * }
+     * </pre>
+     */
+    NONE,
 }

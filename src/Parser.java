@@ -138,7 +138,12 @@ public class Parser {
     }
 
     private Expression unary() {
-        while (matchAtLeast(LOGIC_NOT, SUBTRACT)) {
+        TokenType matchResult = matchAtLeastWithResult(LOGIC_NOT, SUBTRACT, PLUS); // NOTE: Example from page 88
+
+        while (matchResult != NONE) {
+            if (matchResult == PLUS)
+                throwError(nextToken(), "Unary '+'expressions are not supported");
+
             Token operator = prevToken();
             Expression rhs = unary();
             return new Unary(operator, rhs);
@@ -162,7 +167,7 @@ public class Parser {
 
             return new Grouping(e);
         } else {
-            throwError(getToken(1), "Expect expression");
+            throwError(nextToken(), "Expect expression");
             // FIX: Potential erase current parse result, which isn't Panic Error Handling
             // page 91
             return new Literal(null);
@@ -173,6 +178,7 @@ public class Parser {
 
     /**
      * Match at least one type in `typeList`
+     *
      * @implNote If match, that token will be <b>SKIP</b> due to ++current
      */
     private boolean matchAtLeast(TokenType... typeList) {
@@ -187,18 +193,44 @@ public class Parser {
     }
 
     /**
+     * @implNote Can't overload {@link #matchAtLeast(TokenType...)} due to same
+     *           params type. See: https://stackoverflow.com/a/16377981/12897204
+     * @return NIL - Only use as condition to exit.
+     *
+     *         <pre>
+     *         TokenType matchResult = matchAtLeastWithResult(SUBTRACT, PLUS);
+     *
+     *         while (matchResult != NIL) {
+     *              if (matchResult == PLUS) throwError(...);
+     *         }
+     *         </pre>
+     */
+    private TokenType matchAtLeastWithResult(TokenType... typeList) {
+        for (TokenType type : typeList) {
+            if (isNextToken(type)) {
+                advanced(); // pass over that token
+                return type; // match at least once
+            }
+        }
+
+        return NONE;
+    }
+
+    /**
      * Peek forward {@link #tokenList} to see if there exists a token
-     * @implNote This function is totally different from {@link #matchAtLeast(TokenType...)}
+     *
+     * @implNote This function is totally different from
+     *           {@link #matchAtLeast(TokenType...)}
      */
     private boolean matchPeek(TokenType type) {
         int temp = current - 1; // NOTE: Offset to get nextToken below
 
-        TokenType nextToken = tokenList.get(temp).getType();
+        TokenType nextToken;
 
-        while (nextToken != EOF && nextToken != type) {
+        do {
             ++temp;
             nextToken = tokenList.get(temp).getType();
-        }
+        } while (nextToken != EOF && nextToken != type);
 
         return nextToken != EOF;
     }
@@ -216,8 +248,12 @@ public class Parser {
         return getToken(0);
     }
 
+    private Token nextToken() {
+        return getToken(1);
+    }
+
     private boolean isNextToken(TokenType expected) {
-        return !endOfFile() ? getToken(1).getType() == expected : false;
+        return !endOfFile() ? nextToken().getType() == expected : false;
     }
 
     /**
@@ -256,10 +292,11 @@ public class Parser {
      *                 throw.
      */
     private void panicError(TokenType expected, String message) {
-        if (prevToken().getType() == expected || matchPeek(expected)) // NOTE: Use `prevToken` for case `advanced()` run before
+        if (prevToken().getType() == expected || matchPeek(expected)) // NOTE: Use `prevToken` for case `advanced()` run
+                                                                      // before
             advanced(); // = continue parsing
         else
-            throw new ParseError(getToken(1), message); // Point error location to next token
+            throw new ParseError(nextToken(), message); // Point error location to next token
     }
 
     private class ParseError extends RuntimeException {
