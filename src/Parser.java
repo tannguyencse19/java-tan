@@ -29,10 +29,17 @@ public class Parser {
     }
 
     public Expression getAST() {
-        return expression();
+        // NOTE: Panic Error Handling
+        try {
+            return expression();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    public Expression expression() {
+    /* --------- Backbone function --------- */
+
+    private Expression expression() {
         return equality();
     }
 
@@ -115,13 +122,13 @@ public class Parser {
             return new Literal(prevToken().getLexeme());
         else if (matchOnce(LEFT_PARAN)) {
             Expression e = expression();
-            panicErrHandle(RIGHT_PARAN);
+            throwError(RIGHT_PARAN, "expect ')' after expression");
 
             return new Grouping(e);
         } else {
-            Token err = prevToken();
-            // Tan.err.report(err.getLineID(), "unexpected character: " + err.getLexeme());
-            // // FIX: Comment out when finish
+            throwError(getToken(1), "Expect expression");
+            // FIX: Potential erase current parse result, which isn't Panic Error Handling
+            // page 91
             return new Literal(null);
         }
     }
@@ -182,17 +189,28 @@ public class Parser {
 
     /* --------- Error handle --------- */
 
-    public ParseError panicErrHandle(TokenType expected) {
+    /**
+     * @param token - Custom token
+     */
+    private ParseError throwError(Token token, String message) {
+        throw new ParseError(token, message);
+    }
+
+    /**
+     * @implNote Overload version of {@link #throwError(Token, String)}
+     * @param expected - Give second-chance. If the next token match, then it won't
+     *                 throw.
+     */
+    private ParseError throwError(TokenType expected, String message) {
         if (isNextToken(expected))
             advanced(); // = continue parsing
 
-        // NOTE: "return", not "throw", which will cause err.stackTrace()!
-        return new ParseError(getToken(1), "expect ')' after expression");
+        throw new ParseError(getToken(1), message);
     }
 
     private class ParseError extends RuntimeException {
-        ParseError(Token err, String message) {
-            Tan.err.report(err, message);
+        ParseError(Token token, String message) {
+            Tan.err.report(token, message);
         }
     };
 
