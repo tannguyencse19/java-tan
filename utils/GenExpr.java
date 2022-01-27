@@ -20,8 +20,8 @@ public class GenExpr {
         }
 
         String outputDir = args[0]; // CAUTION: path can be wrong
-        // NOTE: Why use Arrays.asList instead of List<>?
-        // https://stackoverflow.com/a/16748184/12897204
+        // NOTE: Why use Arrays.asList instead of List<>? https://stackoverflow.com/a/16748184/12897204
+
         defineAST(outputDir, "Expression", Arrays.asList(
                 // format: type (class_name): param_1_type param_1_name,
                 // param_2_type param_2_name,...
@@ -36,7 +36,7 @@ public class GenExpr {
     /* --------- Helper function --------- */
 
     /**
-     *
+     * @implNote Using {@code Switch} Design Pattern
      * @throws IOException For PrintWriter, write new file.
      */
     private static void defineAST(String outputDir, String filename, List<String> grammar) throws IOException {
@@ -50,42 +50,18 @@ public class GenExpr {
 
         writer.println("package models;\n");
 
-        writer.println("public abstract class " + filename + " {");
+        writer.println("public interface " + filename + " {");
         /* --------- start main class --------- */
         {
-            // NOTE: Visitor Design Pattern
-            /**
-             * @implNote Why param type is Visitor ? To access the interface methods and for
-             *           passing nested arguments.
-             */
-            writer.println("public abstract <T> T accept(" + "Visitor<T> v);");
-
-            List<String> production_name_list = defineProduction(writer, filename, grammar);
-
-            /**
-             * @param T - Return type of methods.
-             * @implNote
-             *           Interface == Abstract class WITH ONLY method prototypes.
-             *           <p />
-             *           These method will be implemented by other class (i.e: ASTPrint
-             *           implement Expression.Visitor<String>)
-             *
-             * @see https://www.w3schools.com/java/java_interface.asp
-             */
-            writer.println("public interface Visitor<T> {");
-            for (String name : production_name_list) {
-                writer.println("T visit" + name + "(" + name + " instance);");
-            }
-            writer.println("}");
+            defineProduction(writer, filename, grammar);
         }
         /* --------- end main class --------- */
-
         writer.println("}");
 
         writer.close();
     }
 
-    private static List<String> defineProduction(PrintWriter writer, String filename, List<String> grammar)
+    private static void defineProduction(PrintWriter writer, String filename, List<String> grammar)
             throws IOException {
         List<String> production_name_list = new ArrayList<>();
 
@@ -107,7 +83,7 @@ public class GenExpr {
             }
 
             /* --------- start subclass --------- */
-            writer.println("public static class " + production_name + " extends Expression {");
+            writer.println("public static class " + production_name + " implements Expression {");
             {
                 for (int idx = 0; idx < param_name.size(); idx++) {
                     writer.println("public final " + param_type.get(idx) + " _" + param_name.get(idx) + ";");
@@ -120,17 +96,10 @@ public class GenExpr {
                     writer.println("_" + param_name.get(idx) + " = " + param_name.get(idx) + ";");
                 }
                 writer.println("}");
-
-                writer.println("@Override");
-                writer.println("public <T> T accept(" + "Visitor<T> v) {");
-                writer.println("return v.visit" + production_name + "(this);");
-                writer.println("}");
             }
-            writer.println("}\n");
+            writer.println("}");
             /* --------- end subclass --------- */
         }
         /* --------- end production class --------- */
-
-        return production_name_list;
     }
 }

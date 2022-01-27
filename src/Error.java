@@ -14,13 +14,13 @@ public class Error {
         report(line, "", message); // FIX: where is being skipped
     }
 
-    public void report(Token err, String message) {
+    public void report(Token token, String message) {
         // NOTE: Don't use tenary to pass argument
         // NOTE: https://stackoverflow.com/a/40521314/12897204
-        if (err.getType() != TokenType.EOF)
-            report(err.getLineID(), err.getLexeme(), message);
+        if (token.getType() != TokenType.EOF)
+            report(token.getLineID(), token.getLexeme(), message);
         else
-            report(err.getLineID(), "", message);
+            report(token.getLineID(), "", message);
     }
 
     private void report(int line, String where,
