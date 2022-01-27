@@ -2,6 +2,9 @@ package utils;
 
 import static models.TokenType.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import models.Expression;
 import models.Token;
 import models.Expression.*; // FIX: Bad usage - https://stackoverflow.com/a/421127/12897204
@@ -48,12 +51,17 @@ public class ASTPrint implements Visitor<String> {
     public String visitUnary(Unary instance) {
         return parenthensize(instance._operator.getLexeme(), instance._expr); // NOTE: access duoc .getLexeme() o day vi
                                                                               // chung package
-
     }
 
     @Override
     public String visitBinary(Binary instance) {
         return parenthensize(instance._operator.getLexeme(), instance._lhs, instance._rhs);
+    }
+
+    @Override
+    public String visitTernary(Ternary instance) {
+        // Right-to-left
+        return parenthensize(instance._operator.getLexeme(), instance._rhs_second, instance._rhs_first, instance._lhs); // right to left
     }
 
     /* --------- Helper function --------- */

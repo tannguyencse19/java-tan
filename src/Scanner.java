@@ -111,6 +111,13 @@ public class Scanner {
                 addToken(isNextChar('=') ? MORE_EQUAL : MORE);
                 break;
             // LOGIC AND, OR
+            // TERNARY // NOTE: Must seperate because ':' is far from '?', cause lexeme between them is skipped
+            case '?':
+                addToken(QUESTION);
+                break;
+            case ':':
+                addToken(COLON);
+                break;
             case ',':
                 addToken(COMMA);
                 break;
@@ -123,7 +130,6 @@ public class Scanner {
             case '"':
                 addString();
                 break;
-
             // Skipped character
             case ' ':
             case '\r':
@@ -197,6 +203,7 @@ public class Scanner {
     private void addToken(TokenType type, String i_lexeme) {
         tokenList.add(new Token(type, i_lexeme, line));
     }
+
     private void addToken(TokenType type, int i_start, int i_current) {
         String lexeme = source.substring(i_start, i_current);
         tokenList.add(new Token(type, lexeme, line));
@@ -237,6 +244,8 @@ public class Scanner {
         String id = source.substring(start, current - 1);
         TokenType type = (Keyword.get(id) != null) ? Keyword.get(id) : IDENTIFIER;
         addToken(type, id);
+
+        --current; // CAUTION: Hotfix - Decrement to not pass over the character which cause while loop stop
     }
 
     /**

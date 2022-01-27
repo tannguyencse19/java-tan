@@ -6,6 +6,7 @@ import models.Token;
 import models.TokenType;
 import models.Expression;
 import models.Expression.Literal;
+import models.Expression.Ternary;
 import models.Expression.Unary;
 import models.Expression.Binary;
 import models.Expression.Grouping;
@@ -45,27 +46,49 @@ public class Parser {
     }
 
     private Expression commaOperator() {
-        Expression lhs = equality();
+        Expression lhs = ternary();
 
-        while (matchOnce(COMMA)) {
+        while (matchAtLeast(COMMA)) {
             Token operator = prevToken();
-            Expression rhs = equality();
+            Expression rhs = ternary();
             lhs = new Binary(lhs, operator, rhs);
         }
 
         return lhs;
     }
 
+    private Expression ternary() {
+        Expression lhs = equality();
+
+        while (matchAtLeast(QUESTION, COLON)) {
+            Expression first = equality();
+            panicError(COLON, "expect ':' ");
+            Expression second = equality();
+
+            lhs = new Ternary(lhs, new Token(TERNARY, "?:", prevToken().getLineID()), first, second);
+        }
+
+        return lhs;
+    }
+
+    // while (matchAtLeast(LOGIC_NOT, SUBTRACT)) {
+    // Token operator = prevToken();
+    // Expression rhs = unary();
+    // return new Unary(operator, rhs);
+    // }
+
+    // return primary();
+
     private Expression equality() {
         // i.e: equality -> comparison ( ("!=" | "==") comparison )* ;
         // Moi vao phai lay lhs comparison
         Expression lhs = comparison();
 
-        while (matchOnce(NOT_EQUAL, EQUAL_EQUAL)) {
+        while (matchAtLeast(NOT_EQUAL, EQUAL_EQUAL)) {
             // NOTE
             // Our input have form: Token comparison (Token operator Token comparison)*
-            // When `matchOnce()` is called, the `current` variable is ++
-            // also `matchOnce()` is called twice (one in `lhs` and one in `while`)
+            // When `matchAtLeast()` is called, the `current` variable is ++
+            // also `matchAtLeast()` is called twice (one in `lhs` and one in `while`)
             // which make `current` += 2 => getToken() return Token comparison
             // instead of Token operator. That's why call prevToken() here
             Token operator = prevToken();
@@ -81,7 +104,7 @@ public class Parser {
     private Expression comparison() {
         Expression lhs = term();
 
-        while (matchOnce(MORE, MORE_EQUAL, LESS, LESS_EQUAL)) {
+        while (matchAtLeast(MORE, MORE_EQUAL, LESS, LESS_EQUAL)) {
             Token operator = prevToken();
             Expression rhs = term();
             lhs = new Binary(lhs, operator, rhs);
@@ -93,7 +116,7 @@ public class Parser {
     private Expression term() {
         Expression lhs = factor();
 
-        while (matchOnce(PLUS, SUBTRACT)) {
+        while (matchAtLeast(PLUS, SUBTRACT)) {
             Token operator = prevToken();
             Expression rhs = factor();
             lhs = new Binary(lhs, operator, rhs);
@@ -105,7 +128,7 @@ public class Parser {
     private Expression factor() {
         Expression lhs = unary();
 
-        while (matchOnce(DIVIDE, MULTIPLY)) {
+        while (matchAtLeast(DIVIDE, MULTIPLY)) {
             Token operator = prevToken();
             Expression rhs = unary();
             lhs = new Binary(lhs, operator, rhs);
@@ -115,7 +138,7 @@ public class Parser {
     }
 
     private Expression unary() {
-        while (matchOnce(LOGIC_NOT, SUBTRACT)) {
+        while (matchAtLeast(LOGIC_NOT, SUBTRACT)) {
             Token operator = prevToken();
             Expression rhs = unary();
             return new Unary(operator, rhs);
@@ -125,17 +148,17 @@ public class Parser {
     }
 
     private Expression primary() {
-        if (matchOnce(FALSE))
+        if (matchAtLeast(FALSE))
             return new Literal(false);
-        else if (matchOnce(TRUE))
+        else if (matchAtLeast(TRUE))
             return new Literal(true);
-        else if (matchOnce(NIL))
+        else if (matchAtLeast(NIL))
             return new Literal(null);
-        else if (matchOnce(NUMBER, STRING))
+        else if (matchAtLeast(NUMBER, STRING))
             return new Literal(prevToken().getLexeme());
-        else if (matchOnce(LEFT_PARAN)) {
+        else if (matchAtLeast(LEFT_PARAN)) {
             Expression e = expression();
-            throwError(RIGHT_PARAN, "expect ')' after expression");
+            panicError(RIGHT_PARAN, "expect ')' after expression");
 
             return new Grouping(e);
         } else {
@@ -149,17 +172,35 @@ public class Parser {
     /* -------------------- Helper function --------------------- */
 
     /**
+     * Match at least one type in `typeList`
      * @implNote If match, that token will be <b>SKIP</b> due to ++current
      */
-    private boolean matchOnce(TokenType... typeList) {
+    private boolean matchAtLeast(TokenType... typeList) {
         for (TokenType type : typeList) {
-            if (isNextToken(type) && !endOfFile()) {
+            if (isNextToken(type)) {
                 advanced(); // pass over that token
                 return true; // match at least once
             }
         }
 
         return false;
+    }
+
+    /**
+     * Peek forward {@link #tokenList} to see if there exists a token
+     * @implNote This function is totally different from {@link #matchAtLeast(TokenType...)}
+     */
+    private boolean matchPeek(TokenType type) {
+        int temp = current - 1; // NOTE: Offset to get nextToken below
+
+        TokenType nextToken = tokenList.get(temp).getType();
+
+        while (nextToken != EOF && nextToken != type) {
+            ++temp;
+            nextToken = tokenList.get(temp).getType();
+        }
+
+        return nextToken != EOF;
     }
 
     private Token advanced() {
@@ -176,7 +217,7 @@ public class Parser {
     }
 
     private boolean isNextToken(TokenType expected) {
-        return getToken(1).getType() == expected;
+        return !endOfFile() ? getToken(1).getType() == expected : false;
     }
 
     /**
@@ -210,15 +251,15 @@ public class Parser {
     }
 
     /**
-     * @implNote Overload version of {@link #throwError(Token, String)}
+     * @implNote Copy of {@link #throwError(Token, String)}
      * @param expected - Give second-chance. If the next token match, then it won't
      *                 throw.
      */
-    private void throwError(TokenType expected, String message) {
-        if (prevToken().getType() == expected || isNextToken(expected))
+    private void panicError(TokenType expected, String message) {
+        if (prevToken().getType() == expected || matchPeek(expected)) // NOTE: Use `prevToken` for case `advanced()` run before
             advanced(); // = continue parsing
         else
-            throw new ParseError(getToken(1), message);
+            throw new ParseError(getToken(1), message); // Point error location to next token
     }
 
     private class ParseError extends RuntimeException {
