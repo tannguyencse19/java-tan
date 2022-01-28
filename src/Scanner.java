@@ -111,7 +111,8 @@ public class Scanner {
                 addToken(isNextChar('=') ? MORE_EQUAL : MORE);
                 break;
             // LOGIC AND, OR
-            // TERNARY // NOTE: Must seperate because ':' is far from '?', cause lexeme between them is skipped
+            // TERNARY // NOTE: Must seperate because ':' is far from '?', cause lexeme
+            // between them is skipped
             case '?':
                 addToken(QUESTION);
                 break;
@@ -190,7 +191,6 @@ public class Scanner {
     // }
 
     /**
-     * @param type
      * @see - Phan biet Token >< Lexeme:
      *      https://stackoverflow.com/a/14958865/12897204
      */
@@ -200,13 +200,27 @@ public class Scanner {
         tokenList.add(new Token(type, lexeme, line));
     }
 
-    private void addToken(TokenType type, String i_lexeme) {
-        tokenList.add(new Token(type, i_lexeme, line));
-    }
+    /**
+     * Override {@link #addToken(TokenType)}. <p />
+     * Example: {@link #addString()}
+     *
+     * <pre>
+     * String pureValue = source.substring(start + 1, current - 1);
+     * addToken(STRING, pureValue);
+     * </pre>
+     *
+     * @param literal Store lexeme type.
+     *                <p />
+     *                Lexeme has type {@code string}, so even {@code number} will be
+     *                scan as a {@code string}. {@code literal} has type
+     *                {@code Object} so you can pass in original value and type. See
+     *                example above.
+     */
+    private void addToken(TokenType type, Object literal) {
+        String lexeme = source.substring(start, current); // NOTE: Lexeme khong nhat thiet la 1 tu hoan chinh, ma co the
+                                                          // la 1 chu cai thoi
+        tokenList.add(new Token(type, lexeme, literal, line));
 
-    private void addToken(TokenType type, int i_start, int i_current) {
-        String lexeme = source.substring(i_start, i_current);
-        tokenList.add(new Token(type, lexeme, line));
     }
 
     private void addString() {
@@ -221,17 +235,15 @@ public class Scanner {
         }
 
         // Trim start, end character ""
-        // String str = source.substring(start + 1, current - 1);
-        // tokenList.add(new Token(STRING, str, line));
-
-        addToken(STRING, start + 1, current - 1);
+        String pureValue = source.substring(start + 1, current - 1);
+        addToken(STRING, pureValue);
     }
 
     private void addNum() {
         while ((isDigit(nextChar()) || isNextChar('.')) && !endOfFile())
             ++current; // Neu la digit thi moi cho doc tiep
 
-        addToken(NUMBER);
+        addToken(NUMBER, Double.parseDouble(source.substring(start, current)));
     }
 
     private void addIdentifier() {
@@ -241,11 +253,11 @@ public class Scanner {
             c = readSource(); // NOTE: Because readSource() also ++current;
         }
 
-        String id = source.substring(start, current - 1);
+        --current; // CAUTION: Hotfix - Decrement to not pass over the character which cause while
+                   // loop stop
+        String id = source.substring(start, current);
         TokenType type = (Keyword.get(id) != null) ? Keyword.get(id) : IDENTIFIER;
-        addToken(type, id);
-
-        --current; // CAUTION: Hotfix - Decrement to not pass over the character which cause while loop stop
+        addToken(type);
     }
 
     /**

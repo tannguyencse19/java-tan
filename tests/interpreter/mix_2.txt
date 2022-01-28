@@ -1,0 +1,8 @@
+2 < 3 ? !false : 4;
+
+
+// Result = true
+// Example include test:
+// Ternary, Comparision/Equality
+// Unary logic_not
+// Literal

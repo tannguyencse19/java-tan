@@ -160,7 +160,7 @@ public class Parser {
         else if (matchAtLeast(NIL))
             return new Literal(null);
         else if (matchAtLeast(NUMBER, STRING))
-            return new Literal(prevToken().getLexeme());
+            return new Literal(prevToken().getLiteral());
         else if (matchAtLeast(LEFT_PARAN)) {
             Expression e = expression();
             panicError(RIGHT_PARAN, "expect ')' after expression");

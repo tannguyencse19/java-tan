@@ -9,7 +9,7 @@ import models.Expression.Ternary;
 
 public class Interpreter {
     public void run(Expression AST) {
-        switchPattern(AST);
+        System.out.println(switchPattern(AST).toString());
     }
 
     /* --------- Helper function --------- */
@@ -20,7 +20,6 @@ public class Interpreter {
     private Object switchPattern(Expression e) {
         switch (e) {
             case Ternary t -> {
-                // Right to left
                 Object rhs_second = switchPattern(t._rhs_second);
                 Object rhs_first = switchPattern(t._rhs_first);
                 Object lhs = switchPattern(t._lhs);
@@ -76,7 +75,7 @@ public class Interpreter {
                     case LOGIC_NOT:
                         return !truthy(rhs);
                     case SUBTRACT:
-                        return -(double) rhs;
+                        return -((double) rhs);
                     default:
                         Tan.err.report(u._operator, "unexpected unary operator");
                         return null;
@@ -117,4 +116,5 @@ public class Interpreter {
         else
             return true;
     }
+
 }

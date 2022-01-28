@@ -3,23 +3,24 @@ package models;
 public class Token {
     final TokenType _type;
     final String _lexeme;
+    final Object _literal;
     final int _lineID;
 
-    /**
-     *
-     * @param lexeme
-     * @param type
-     * @param lineID
-     * @implNote param 3rd - Object literal has been removed
-     */
     public Token(TokenType type, String lexeme, int lineID) {
         _type = type;
         _lexeme = lexeme;
         _lineID = lineID;
+        _literal = null;
     }
 
-    public String toString() {
-        return _lexeme + ' ' + _type + ' ' + _lineID;
+    /**
+     * @param literal - Only for {@code TokenType: NUMBER, STRING}
+     */
+    public Token(TokenType type, String lexeme, Object literal, int lineID) {
+        _type = type;
+        _lexeme = lexeme;
+        _lineID = lineID;
+        _literal = literal;
     }
 
     /* --------- Helper function --------- */
@@ -31,6 +32,10 @@ public class Token {
 
     public String getLexeme() {
         return _lexeme;
+    }
+
+    public Object getLiteral() {
+        return _literal;
     }
 
     public int getLineID() {
