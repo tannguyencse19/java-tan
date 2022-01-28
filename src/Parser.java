@@ -299,6 +299,16 @@ public class Parser {
             throw new ParseError(nextToken(), message); // Point error location to next token
     }
 
+    /**
+     * Diffrent are in <b><i>When</i></b> it throws.
+     * <p />
+     * Checked exceptions (i.e: every exception except {@code RuntimeException})
+     * happens at compile time. An easy example is your IDE warning, underline error
+     * code.
+     * <p />
+     * Unchecked exceptions are happens at runtime. It's when the compiler print
+     * error stack trace.
+     */
     private class ParseError extends RuntimeException {
         ParseError(Token token, String message) {
             Tan.err.report(token, message);

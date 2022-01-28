@@ -1,6 +1,9 @@
 package src;
 
+import javax.management.RuntimeErrorException;
+
 import models.Expression;
+import models.Token;
 import models.Expression.Literal;
 import models.Expression.Grouping;
 import models.Expression.Unary;
@@ -38,12 +41,16 @@ public class Interpreter {
                     case EQUAL_EQUAL:
                         return isEqual(lhs, rhs);
                     case MORE:
+                        verifyNumber(b._operator, "exist an operand of '>' is not a number", lhs, rhs);
                         return (double) lhs > (double) rhs;
                     case MORE_EQUAL:
+                        verifyNumber(b._operator, "exist an operand of '>=' is not a number", lhs, rhs);
                         return (double) lhs >= (double) rhs;
                     case LESS:
+                        verifyNumber(b._operator, "exist an operand of '<' is not a number", lhs, rhs);
                         return (double) lhs < (double) rhs;
                     case LESS_EQUAL:
+                        verifyNumber(b._operator, "exist an operand of '<=' is not a number", lhs, rhs);
                         return (double) lhs <= (double) rhs;
                     case PLUS:
                         if (lhs instanceof Double && rhs instanceof Double)
@@ -51,21 +58,23 @@ public class Interpreter {
                         else if (lhs instanceof String && rhs instanceof String)
                             return (String) lhs + (String) rhs;
                         else {
-                            Tan.err.report(b._operator, "operator '+' receive unexpected operand");
-                            return null;
+                            throw new RuntimeError(b._operator,
+                                    "two operand of '+' must be same type number or string");
                         }
                     case SUBTRACT:
+                        verifyNumber(b._operator, "exist an operand of '-' is not a number", lhs, rhs);
                         return (double) lhs - (double) rhs;
                     case MULTIPLY:
+                        verifyNumber(b._operator, "exist an operand of '*' is not a number", lhs, rhs);
                         return (double) lhs * (double) rhs;
                     case DIVIDE:
+                        verifyNumber(b._operator, "exist an operand of '/' is not a number", lhs, rhs);
                         if ((double) rhs == 0)
-                            Tan.err.report(b._operator, "divide by 0");
+                            throw new RuntimeError(b._operator, "divide by 0");
 
                         return (double) lhs / (double) rhs;
                     default:
-                        Tan.err.report(b._operator, "unexpected operator");
-                        return null;
+                        throw new RuntimeError(b._operator, "unexpected binary operator");
                 }
             }
             case Unary u -> {
@@ -75,6 +84,7 @@ public class Interpreter {
                     case LOGIC_NOT:
                         return !truthy(rhs);
                     case SUBTRACT:
+                        verifyNumber(u._operator, "operand of unary '-' is not a number", rhs);
                         return -((double) rhs);
                     default:
                         Tan.err.report(u._operator, "unexpected unary operator");
@@ -117,4 +127,18 @@ public class Interpreter {
             return true;
     }
 
+    private void verifyNumber(Token operator, String message, Object... args) {
+        if (args.length == 1 && args[0] instanceof Double)
+            return;
+        else if (args.length == 2 && args[0] instanceof Double && args[1] instanceof Double)
+            return;
+
+        throw new RuntimeError(operator, message);
+    }
+
+    private class RuntimeError extends RuntimeException {
+        RuntimeError(Token operator, String message) {
+            Tan.err.report(operator, message);
+        }
+    };
 }
