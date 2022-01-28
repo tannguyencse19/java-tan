@@ -1,5 +1,7 @@
 package src;
 
+import java.util.Objects;
+
 import javax.management.RuntimeErrorException;
 
 import models.Expression;
@@ -12,7 +14,12 @@ import models.Expression.Ternary;
 
 public class Interpreter {
     public void run(Expression AST) {
-        System.out.println(switchPattern(AST).toString());
+        try {
+            Object result = switchPattern(AST);
+            System.out.println(clean(result));
+        } catch (RuntimeError e) {
+            Tan.err.report(e);
+        }
     }
 
     /* --------- Helper function --------- */
@@ -127,6 +134,19 @@ public class Interpreter {
             return true;
     }
 
+    private String clean(Object obj) {
+        String result = Objects.toString(obj, null);
+
+        if (result == null)
+            return "nil";
+        else if (obj instanceof Double) {
+            if (result.endsWith(".0"))
+                result = result.substring(0, result.length() - 2);
+        }
+
+        return result;
+    }
+
     private void verifyNumber(Token operator, String message, Object... args) {
         if (args.length == 1 && args[0] instanceof Double)
             return;
@@ -136,9 +156,12 @@ public class Interpreter {
         throw new RuntimeError(operator, message);
     }
 
-    private class RuntimeError extends RuntimeException {
+    public class RuntimeError extends RuntimeException {
+        final Token token;
+
         RuntimeError(Token operator, String message) {
-            Tan.err.report(operator, message);
+            super(message);
+            token = operator;
         }
     };
 }

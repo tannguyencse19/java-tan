@@ -44,6 +44,9 @@ public class Tan {
         // FIX: Comment out this line when finish
         // if (err.hasError())
         // System.exit(65); // FIX: Define code 65
+        // if (err.hasRuntimeError())
+        // System.exit(70); // FIX: Define code 65
+
 
         Parser par = new Parser(tokenList);
         Expression AST = par.getAST(); // NOTE: For debug

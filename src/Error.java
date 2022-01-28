@@ -2,9 +2,11 @@ package src;
 
 import models.Token;
 import models.TokenType;
+import src.Interpreter.RuntimeError;
 
 public class Error {
     private Boolean _errStatus;
+    private Boolean runtimeError;
 
     Error() {
         setError(false);
@@ -35,6 +37,12 @@ public class Error {
         setError(true);
     }
 
+    public void report(RuntimeError err) {
+        System.err.println(err.getMessage() +
+                "\n[line " + err.token.getLineID() + "]");
+        setRuntimeError(true);
+    }
+
     /* --------- Helper function ---------- */
     public void setError(Boolean status) {
         _errStatus = status;
@@ -43,4 +51,16 @@ public class Error {
     public Boolean hasError() {
         return _errStatus;
     }
+
+    public void setRuntimeError(Boolean status) {
+        runtimeError = status;
+    }
+
+    public Boolean hasRuntimeError() {
+        return runtimeError;
+    }
+
+    /* ---------------- Error Type -------------------- */
+
+
 }
