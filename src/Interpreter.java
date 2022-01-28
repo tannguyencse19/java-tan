@@ -60,11 +60,11 @@ public class Interpreter {
                     case PLUS:
                         if (lhs instanceof Double && rhs instanceof Double)
                             return (double) lhs + (double) rhs;
-                        else if (lhs instanceof String && rhs instanceof String)
+                        else if (lhs instanceof String || rhs instanceof String)
                             return (String) lhs + (String) rhs;
                         else {
                             throw new RuntimeError(b._operator,
-                                    "two operand of '+' must be same type number or string");
+                                    "two operand of '+' are not type number or string");
                         }
                     case SUBTRACT:
                         verifyNumber(b._operator, "exist an operand of '-' is not a number", lhs, rhs);
