@@ -38,24 +38,24 @@ public class ASTPrint {
      */
     private String switchPattern(Expression e) {
         switch (e) {
+            case Ternary t -> {
+                // Right to left
+                return parenthensize(t._operator.getLexeme(), t._rhs_second, t._rhs_first, t._lhs);
+            }
+            case Binary b -> {
+                return parenthensize(b._operator.getLexeme(), b._lhs, b._rhs);
+            }
+            case Unary u -> {
+                return parenthensize(u._operator.getLexeme(), u._expr);
+            }
+            case Grouping g -> {
+                return parenthensize("group", g._expr);
+            }
             case Literal l -> {
                 if (l._value == null)
                     return "nil";
 
                 return l._value.toString();
-            }
-            case Grouping g -> {
-                return parenthensize("group", g._expr);
-            }
-            case Unary u -> {
-                return parenthensize(u._operator.getLexeme(), u._expr);
-            }
-            case Binary b -> {
-                return parenthensize(b._operator.getLexeme(), b._lhs, b._rhs);
-            }
-            case Ternary t -> {
-                // Right to left
-                return parenthensize(t._operator.getLexeme(), t._rhs_second, t._rhs_first, t._lhs);
             }
             default -> {
                 src.Tan.err.report(0, "Expression error");
