@@ -17,6 +17,7 @@ import utils.ASTPrint;
  */
 public class Tan {
     public static Error err = new Error();
+    private static final Interpreter interpret = new Interpreter();
 
     /**
      * @param args
@@ -45,13 +46,12 @@ public class Tan {
         // if (err.hasError())
         // System.exit(65); // FIX: Define code 65
         // if (err.hasRuntimeError())
-        // System.exit(70); // FIX: Define code 65
-
+        // System.exit(70); // FIX: Define code 70
 
         Parser par = new Parser(tokenList);
         Expression AST = par.getAST(); // NOTE: For debug
         // new ASTPrint().print(AST);
-        new Interpreter().run(AST);
+        interpret.run(AST);
     }
 
     /* --------- Helper function --------- */

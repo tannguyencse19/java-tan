@@ -2,8 +2,6 @@ package src;
 
 import java.util.Objects;
 
-import javax.management.RuntimeErrorException;
-
 import models.Expression;
 import models.Token;
 import models.Expression.Literal;
