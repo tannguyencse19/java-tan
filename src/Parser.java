@@ -1,15 +1,21 @@
 package src;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import models.Token;
 import models.TokenType;
 import models.Expression;
+import models.Expression.VarAccess;
 import models.Expression.Literal;
 import models.Expression.Ternary;
 import models.Expression.Unary;
 import models.Expression.Binary;
 import models.Expression.Grouping;
+import models.Statement;
+import models.Statement.Expr;
+import models.Statement.Print;
+import models.Statement.VarDeclare;
 
 import static models.TokenType.*;
 
@@ -29,10 +35,12 @@ public class Parser {
         // }
     }
 
-    public Expression getAST() {
+    public List<Statement> getAST() {
         // NOTE: Panic Error Handling
         try {
-            return expression();
+            List<Statement> ASTList = program();
+
+            return ASTList;
         } catch (Exception e) {
             return null;
         }
@@ -40,8 +48,52 @@ public class Parser {
 
     /* ----------------- Backbone function ------------------- */
 
+    private List<Statement> program() {
+        List<Statement> stmtList = new ArrayList<>();
+
+        // NOTE: matchPeek already check EOF and end of line SEMI_COLON
+        while (matchPeek(SEMI_COLON)) {
+            stmtList.add(declaration());
+            current++; // HACK: Hot-fix - Pass over SEMI_COLON of current statement after finish
+        }
+
+        return stmtList;
+    }
+
+    private Statement declaration() {
+        try {
+            if (matchAtLeast(VAR))
+                return varStatement();
+            return statement();
+        } catch (ParseError err) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Statement varStatement() {
+        panicError(IDENTIFIER, "identifier need to be initialized before used");
+        Token identifier = prevToken();
+
+        Expression initializer = null; // NOTE: No default value
+        if (matchAtLeast(EQUAL)) {
+            initializer = expression();
+        }
+
+        return new VarDeclare(identifier, initializer);
+    }
+
+    private Statement statement() {
+        if (matchAtLeast(PRINT)) {
+            Expression expr = expression(); // HACK: Hot-fix - With PrintStatement, need to pass over token Print
+            return new Print(expr);
+        }
+
+        Expression expr = expression();
+        return new Expr(expr);
+    }
+
     private Expression expression() {
-        // return logicOR(commaOperator(), equality());
         return commaOperator();
     }
 
@@ -166,7 +218,9 @@ public class Parser {
             panicError(RIGHT_PARAN, "expect ')' after expression");
 
             return new Grouping(e);
-        } else {
+        } else if (matchAtLeast(IDENTIFIER))
+            return new VarAccess(prevToken());
+        else {
             throwError(nextToken(), "Expect expression");
             // FIX: Potential erase current parse result, which isn't Panic Error Handling
             // page 91
@@ -180,6 +234,8 @@ public class Parser {
      * Match at least one type in `typeList`
      *
      * @implNote If match, that token will be <b>SKIP</b> due to ++current
+     *           <p />
+     *           So it's often use in conjuction with {@link #prevToken()}
      */
     private boolean matchAtLeast(TokenType... typeList) {
         for (TokenType type : typeList) {
@@ -287,9 +343,13 @@ public class Parser {
     }
 
     /**
+     * Same as {@code consume()}
+     *
      * @implNote Copy of {@link #throwError(Token, String)}
+     * @implNote If match, current++;
      * @param expected - Give second-chance. If the next token match, then it won't
      *                 throw.
+     *
      */
     private void panicError(TokenType expected, String message) {
         if (prevToken().getType() == expected || matchPeek(expected)) // NOTE: Use `prevToken` for case `advanced()` run

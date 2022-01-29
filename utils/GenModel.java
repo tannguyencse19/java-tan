@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * @implNote Params: A path input, where to generate files. i.e:
  *           GenExpr("models")
  */
-public class GenExpr {
+public class GenModel {
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.out.println("This class require a param: Path to generate files");
@@ -20,17 +20,24 @@ public class GenExpr {
         }
 
         String outputDir = args[0]; // CAUTION: path can be wrong
-        // NOTE: Why use Arrays.asList instead of List<>? https://stackoverflow.com/a/16748184/12897204
+        // NOTE: Why use Arrays.asList instead of List<>?
+        // https://stackoverflow.com/a/16748184/12897204
 
         defineAST(outputDir, "Expression", Arrays.asList(
                 // format: type (class_name): param_1_type param_1_name,
                 // param_2_type param_2_name,...
                 // NOTE: Case-sensitive
                 "Literal: Object value", // NOTE: Object is the root of all types => Abstract type
+                "VarAccess: Token identifer",
                 "Grouping: Expression expr",
                 "Unary: Token operator, Expression expr",
                 "Binary: Expression lhs, Token operator, Expression rhs",
                 "Ternary: Expression lhs, Token operator, Expression rhs_first, Expression rhs_second"));
+
+        defineAST(outputDir, "Statement", Arrays.asList(
+                "Expr: Expression expr",
+                "Print: Expression expr",
+                "VarDeclare: Token identifier, Expression initializer"));
     }
 
     /* --------- Helper function --------- */
@@ -83,7 +90,7 @@ public class GenExpr {
             }
 
             /* --------- start subclass --------- */
-            writer.println("public static class " + production_name + " implements Expression {");
+            writer.println("public static class " + production_name + " implements " + filename + " {");
             {
                 for (int idx = 0; idx < param_name.size(); idx++) {
                     writer.println("public final " + param_type.get(idx) + " _" + param_name.get(idx) + ";");

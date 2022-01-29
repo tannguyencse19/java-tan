@@ -1,26 +1,50 @@
 package src;
 
+import java.util.List;
 import java.util.Objects;
 
-import models.Expression;
 import models.Token;
+import models.Expression;
 import models.Expression.Literal;
 import models.Expression.Grouping;
 import models.Expression.Unary;
 import models.Expression.Binary;
 import models.Expression.Ternary;
+import models.Statement;
+import models.Statement.Expr;
+import models.Statement.Print;
 
 public class Interpreter {
-    public void run(Expression AST) {
+    public void run(List<Statement> ASTList) {
         try {
-            Object result = switchPattern(AST);
-            System.out.println(clean(result));
+            for (Statement stmt : ASTList) {
+                runStatement(stmt);
+            }
         } catch (RuntimeError e) {
             Tan.err.report(e);
         }
     }
 
     /* --------- Helper function --------- */
+
+    /**
+     * @implNote Have to code {@code Object result = switchPattern(e._expr);} because
+     * interface doesn't have fields
+     */
+    private void runStatement(Statement s) {
+        switch (s) {
+            case Expr e -> {
+                Object result = switchPattern(e._expr);
+            }
+            case Print p -> {
+                Object result = switchPattern(p._expr);
+                System.out.println(clean(result));
+            }
+            default -> {
+                src.Tan.err.report(0, "Statement error");
+            }
+        }
+    }
 
     /**
      * @implNote Can't reduce `{ return parenthensize() }`. Stupid!

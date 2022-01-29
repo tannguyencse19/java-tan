@@ -125,11 +125,26 @@ public class Scanner {
 
             /* --------- Others --------- */
 
-            case '.': // FIX: Not know where to put
+            case ';':
+                addToken(SEMI_COLON);
+                break;
+            case '.':
                 addToken(DOT);
                 break;
             case '"':
                 addString();
+                break;
+            case 'v':
+                if (source.substring(start, current + 2).equals("var")) {
+                    tokenList.add(new Token(VAR, "var", line)); // HACK: Hot-fix for addToken()
+                    current += 2;
+                }
+                break;
+            case 'p':
+                if (source.substring(start, current + 4).equals("print")) {
+                    tokenList.add(new Token(PRINT, "print", line)); // HACK: Hot-fix for addToken()
+                    current += 4;
+                }
                 break;
             // Skipped character
             case ' ':
@@ -201,7 +216,8 @@ public class Scanner {
     }
 
     /**
-     * Override {@link #addToken(TokenType)}. <p />
+     * Override {@link #addToken(TokenType)}.
+     * <p />
      * Example: {@link #addString()}
      *
      * <pre>
@@ -250,11 +266,15 @@ public class Scanner {
         char c = nextChar();
 
         while ((isIdentifier(c) || isDigit(c)) && !endOfFile()) {
-            c = readSource(); // NOTE: Because readSource() also ++current;
+            c = readSource();
         }
 
-        --current; // CAUTION: Hotfix - Decrement to not pass over the character which cause while
-                   // loop stop
+        // CAUTION: Hotfix - Decrement to not pass over the character in readSource()
+        // which cause while loop stop
+        // If the next character is RIGHT_PAREN
+        if (nextChar() == ')')
+            --current;
+
         String id = source.substring(start, current);
         TokenType type = (Keyword.get(id) != null) ? Keyword.get(id) : IDENTIFIER;
         addToken(type);

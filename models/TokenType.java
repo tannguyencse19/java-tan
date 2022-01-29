@@ -3,7 +3,7 @@ package models;
 public enum TokenType {
     // Single-character tokens
     PLUS, SUBTRACT, MULTIPLY, DIVIDE, EQUAL,
-    COMMA, DOT, QUESTION, COLON,
+    COMMA, DOT, QUESTION, COLON, SEMI_COLON,
 
     // One or two character tokens
     INCREMENT, DECREMENT,
