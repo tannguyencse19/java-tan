@@ -1,0 +1,10 @@
+var a = "global scope";
+{
+    var a = "1st inner scope";
+    {
+        var a = "2nd inner scope";
+        print a;
+    }
+    print a;
+}
+print a;

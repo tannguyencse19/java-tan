@@ -36,6 +36,7 @@ public class GenModel {
                 "Ternary: Expression lhs, Token operator, Expression rhs_first, Expression rhs_second"));
 
         defineAST(outputDir, "Statement", Arrays.asList(
+                "Block: List<Statement> stmtList",
                 "Expr: Expression expr",
                 "Print: Expression expr",
                 "VarDeclare: Token identifier, Expression initializer"));

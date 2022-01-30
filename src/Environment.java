@@ -7,17 +7,23 @@ import models.Token;
 
 class Environment {
     private final Map<String, Object> values = new HashMap<>();
-    private final Environment linkPtr;
+    private final Environment currentEnv;
 
     /**
-     * For {@code Global} Scope (Variable)
+     * Use to create {@code Global} Scope
+     * <p />
+     * <b><i>Note for debugging:</i></b> {@code Global} Scope will have
+     * {@code currentEnv = null}
      */
     public Environment() {
-        linkPtr = null;
+        currentEnv = null;
     }
 
-    public Environment(Environment linkPtr) {
-        this.linkPtr = linkPtr;
+    /**
+     * Use to create new local environment
+     */
+    public Environment(Environment newLocalEnv) {
+        currentEnv = newLocalEnv;
     }
 
     public void defineVar(String identifier, Object value) {
@@ -32,8 +38,8 @@ class Environment {
     public void assign(Token identifier, Object value) {
         if (values.containsKey(identifier.getLexeme())) {
             values.put(identifier.getLexeme(), value);
-        } else if (linkPtr != null) {
-            linkPtr.assign(identifier, value);
+        } else if (currentEnv != null) {
+            currentEnv.assign(identifier, value);
         } else
             throw new Interpreter().new RuntimeError(identifier,
                     "assignement to undefined variable: " + identifier.getLexeme());
@@ -43,8 +49,8 @@ class Environment {
         if (values.containsKey(finding.getLexeme()))
             return values.get(finding.getLexeme());
 
-        if (linkPtr != null) {
-            return linkPtr.getValue(finding);
+        if (currentEnv != null) {
+            return currentEnv.getValue(finding);
         } else
             throw new Interpreter().new RuntimeError(finding, "undefined variable: " + finding.getLexeme());
     }

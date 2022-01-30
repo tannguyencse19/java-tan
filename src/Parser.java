@@ -14,6 +14,7 @@ import models.Expression.Assign;
 import models.Expression.Binary;
 import models.Expression.Grouping;
 import models.Statement;
+import models.Statement.Block;
 import models.Statement.Expr;
 import models.Statement.Print;
 import models.Statement.VarDeclare;
@@ -61,6 +62,22 @@ public class Parser {
         return stmtList;
     }
 
+    private List<Statement> block() {
+        List<Statement> stmtList = new ArrayList<>();
+
+        while (!isNextToken(RIGHT_BRACE)) {
+            stmtList.add(declaration());
+            current++; // HACK: Same reason like `program()`
+        }
+
+        // NOTE: Hot-fix - RIGHT_BRACE is the condition to exit while loop
+        // NOTE: so panicError will never happended except it is endOfFile
+        //  panicError(RIGHT_BRACE, "expected '}' to close block");
+        if (endOfFile()) throwError(prevToken(), "expected '}' to close block");
+
+        return stmtList;
+    }
+
     private Statement declaration() {
         try {
             if (matchAtLeast(VAR))
@@ -85,7 +102,9 @@ public class Parser {
     }
 
     private Statement statement() {
-        if (matchAtLeast(PRINT)) {
+        if (matchAtLeast(LEFT_BRACE)) {
+            return new Block(block());
+        } else if (matchAtLeast(PRINT)) {
             Expression expr = expression(); // HACK: Hot-fix - With PrintStatement, need to pass over token Print
             return new Print(expr);
         }
@@ -100,6 +119,7 @@ public class Parser {
 
     /**
      * How to deal with {@link #assignment()} -> {@code page 122}
+     *
      * @return
      */
     private Expression assignment() {
@@ -110,7 +130,7 @@ public class Parser {
             Expression rhs = ternary(); // also value
 
             if (lhs instanceof VarAccess) {
-                Token identifier = ((VarAccess)lhs)._identifer;
+                Token identifier = ((VarAccess) lhs)._identifer;
                 return new Assign(identifier, rhs);
             }
 
@@ -322,6 +342,9 @@ public class Parser {
         return getToken(1);
     }
 
+    /**
+     * Same as {@code check()}
+     */
     private boolean isNextToken(TokenType expected) {
         return !endOfFile() ? nextToken().getType() == expected : false;
     }

@@ -13,24 +13,35 @@ import models.Expression.Binary;
 import models.Expression.Ternary;
 import models.Expression.Assign;
 import models.Statement;
+import models.Statement.Block;
 import models.Statement.Expr;
 import models.Statement.Print;
 import models.Statement.VarDeclare;
 
 public class Interpreter {
-    private final Environment env = new Environment();
+    private Environment env = new Environment();
 
+    // NOTE: global scope
     public void run(List<Statement> ASTList) {
+        runBlock(ASTList, env);
+    }
+
+    /* --------- Helper function --------- */
+
+    private void runBlock(List<Statement> stmtList, Environment currentEnv) {
+        Environment prevEnv = this.env;
         try {
-            for (Statement stmt : ASTList) {
+            this.env = currentEnv; // FOR DEBUG: global scope currentEnv = prevEnv
+
+            for (Statement stmt : stmtList) {
                 runStatement(stmt);
             }
         } catch (RuntimeError e) {
             Tan.err.report(e);
+        } finally {
+            this.env = prevEnv;
         }
     }
-
-    /* --------- Helper function --------- */
 
     /**
      * @implNote Have to code {@code Object result = switchPattern(e._expr);}
@@ -39,6 +50,10 @@ public class Interpreter {
      */
     private void runStatement(Statement s) {
         switch (s) {
+            case Block b -> {
+                Environment local = new Environment(env);
+                runBlock(b._stmtList, local);
+            }
             case Expr e -> {
                 Object result = switchPattern(e._expr);
             }
