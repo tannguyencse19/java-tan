@@ -75,8 +75,6 @@ public class Interpreter {
                 Object rhs = switchPattern(b._rhs);
 
                 switch (b._operator.getType()) {
-                    case COMMA:
-                        return rhs; // discard lhs
                     case NOT_EQUAL:
                         return !isEqual(lhs, rhs);
                     case EQUAL_EQUAL:

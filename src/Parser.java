@@ -10,6 +10,7 @@ import models.Expression.VarAccess;
 import models.Expression.Literal;
 import models.Expression.Ternary;
 import models.Expression.Unary;
+import models.Expression.Assign;
 import models.Expression.Binary;
 import models.Expression.Grouping;
 import models.Statement;
@@ -94,18 +95,30 @@ public class Parser {
     }
 
     private Expression expression() {
-        return commaOperator();
+        return assignment();
     }
 
-    private Expression commaOperator() {
-        Expression lhs = ternary();
+    /**
+     * How to deal with {@link #assignment()} -> {@code page 122}
+     * @return
+     */
+    private Expression assignment() {
+        Expression lhs = ternary(); // also identifier
 
-        while (matchAtLeast(COMMA)) {
-            Token operator = prevToken();
-            Expression rhs = ternary();
-            lhs = new Binary(lhs, operator, rhs);
+        if (matchAtLeast(EQUAL)) {
+            Token equal = prevToken(); // only for `throwError()`
+            Expression rhs = ternary(); // also value
+
+            if (lhs instanceof VarAccess) {
+                Token identifier = ((VarAccess)lhs)._identifer;
+                return new Assign(identifier, rhs);
+            }
+
+            throwError(equal, "Invalid assignment identiifier");
         }
 
+        // NOTE: It means assignment expr is a ternary expr
+        // NOTE: when `matchAtLeast(EQUAL)` false
         return lhs;
     }
 
@@ -122,14 +135,6 @@ public class Parser {
 
         return lhs;
     }
-
-    // while (matchAtLeast(LOGIC_NOT, SUBTRACT)) {
-    // Token operator = prevToken();
-    // Expression rhs = unary();
-    // return new Unary(operator, rhs);
-    // }
-
-    // return primary();
 
     private Expression equality() {
         // i.e: equality -> comparison ( ("!=" | "==") comparison )* ;

@@ -119,9 +119,6 @@ public class Scanner {
             case ':':
                 addToken(COLON);
                 break;
-            case ',':
-                addToken(COMMA);
-                break;
 
             /* --------- Others --------- */
 

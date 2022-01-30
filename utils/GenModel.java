@@ -31,6 +31,7 @@ public class GenModel {
                 "VarAccess: Token identifer",
                 "Grouping: Expression expr",
                 "Unary: Token operator, Expression expr",
+                "Assign: Token identifier, Expression value",
                 "Binary: Expression lhs, Token operator, Expression rhs",
                 "Ternary: Expression lhs, Token operator, Expression rhs_first, Expression rhs_second"));
 
