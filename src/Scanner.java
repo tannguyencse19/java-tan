@@ -131,18 +131,6 @@ public class Scanner {
             case '"':
                 addString();
                 break;
-            case 'v':
-                if (source.substring(start, current + 2).equals("var")) {
-                    tokenList.add(new Token(VAR, "var", line)); // HACK: Hot-fix for addToken()
-                    current += 2;
-                }
-                break;
-            case 'p':
-                if (source.substring(start, current + 4).equals("print")) {
-                    tokenList.add(new Token(PRINT, "print", line)); // HACK: Hot-fix for addToken()
-                    current += 4;
-                }
-                break;
             // Skipped character
             case ' ':
             case '\r':
@@ -266,15 +254,14 @@ public class Scanner {
             c = readSource();
         }
 
-        // CAUTION: Hotfix - Decrement to not pass over the character in readSource()
-        // which cause while loop stop
-        // If the next character is RIGHT_PAREN
-        if (nextChar() == ')')
-            --current;
-
-        String id = source.substring(start, current);
+        String id = source.substring(start, current - 1); // why -1 ? see caution below
         TokenType type = (Keyword.get(id) != null) ? Keyword.get(id) : IDENTIFIER;
         addToken(type);
+
+        // CAUTION: Hotfix
+        // Decrement to not pass over the character in readSource()
+        // which cause while loop stop
+        --current;
     }
 
     /**

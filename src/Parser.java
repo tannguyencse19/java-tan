@@ -18,6 +18,7 @@ import models.Statement.Block;
 import models.Statement.Expr;
 import models.Statement.Print;
 import models.Statement.VarDeclare;
+import models.Statement.If;
 
 import static models.TokenType.*;
 
@@ -43,7 +44,9 @@ public class Parser {
             List<Statement> ASTList = program();
 
             return ASTList;
-        } catch (Exception e) {
+        } catch (ParseError e) {
+            // FOR DEBUG: This shouldn't appear because ParseError is compile error
+            System.err.println(e);
             return null;
         }
     }
@@ -56,7 +59,8 @@ public class Parser {
         // NOTE: matchPeek already check EOF
         while (matchPeek(SEMI_COLON)) {
             stmtList.add(declaration());
-            current++; // HACK: Hot-fix - Pass over SEMI_COLON of current statement after finish
+            // CAUTION: Hot-fix - Due to current++ at different place, current might be ==
+            current++; // CAUTION: Hot-fix - Pass over SEMI_COLON of current statement after finish
         }
 
         return stmtList;
@@ -67,13 +71,14 @@ public class Parser {
 
         while (!isNextToken(RIGHT_BRACE)) {
             stmtList.add(declaration());
-            current++; // HACK: Same reason like `program()`
+            current++; // CAUTION: Same reason like `program()`
         }
 
-        // NOTE: Hot-fix - RIGHT_BRACE is the condition to exit while loop
-        // NOTE: so panicError will never happended except it is endOfFile
-        //  panicError(RIGHT_BRACE, "expected '}' to close block");
-        if (endOfFile()) throwError(prevToken(), "expected '}' to close block");
+        // CAUTION: Hot-fix - RIGHT_BRACE is the condition to exit while loop
+        // CAUTION: so panicError will never happended except it is endOfFile
+        // panicError(RIGHT_BRACE, "expected '}' to close block");
+        if (endOfFile())
+            throwError(prevToken(), "expected '}' to close block");
 
         return stmtList;
     }
@@ -104,8 +109,20 @@ public class Parser {
     private Statement statement() {
         if (matchAtLeast(LEFT_BRACE)) {
             return new Block(block());
+        } else if (matchAtLeast(IF)) {
+            panicError(LEFT_PARAN, "if statement missing '(' for condition");
+            Expression condition = expression();
+            panicError(RIGHT_PARAN, "if statement missing ')' for condition");
+
+            Statement ifStmt = statement();
+            ++current; // CAUTION: Hotfix - Pass over SEMI_COLON
+            Statement elseStmt = null;
+            if (matchAtLeast(ELSE)) {
+                elseStmt = statement();
+            }
+            return new If(condition, ifStmt, elseStmt);
         } else if (matchAtLeast(PRINT)) {
-            Expression expr = expression(); // HACK: Hot-fix - With PrintStatement, need to pass over token Print
+            Expression expr = expression(); // CAUTION: Hot-fix - With PrintStatement, need to pass over token Print
             return new Print(expr);
         }
 
@@ -304,14 +321,17 @@ public class Parser {
      *           {@link #matchAtLeast(TokenType...)}
      */
     private boolean matchPeek(TokenType type) {
-        int temp = current - 1; // NOTE: Offset to get nextToken below
+        int temp = (current == 0) ? 0 : current - 1; // NOTE: Offset to get nextToken below
 
-        TokenType nextToken;
+        TokenType nextToken = tokenList.get(temp).getType();
 
-        do {
+        // Shouldn't use do-while
+        // Edge case: When current == list.size => do before while cause
+        // current out-of-bound
+        while (nextToken != EOF && nextToken != type) {
             ++temp;
             nextToken = tokenList.get(temp).getType();
-        } while (nextToken != EOF && nextToken != type);
+        }
 
         return nextToken != EOF;
     }

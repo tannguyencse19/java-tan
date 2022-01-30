@@ -17,6 +17,7 @@ import models.Statement.Block;
 import models.Statement.Expr;
 import models.Statement.Print;
 import models.Statement.VarDeclare;
+import models.Statement.If;
 
 public class Interpreter {
     private Environment env = new Environment();
@@ -55,7 +56,7 @@ public class Interpreter {
                 runBlock(b._stmtList, local);
             }
             case Expr e -> {
-                Object result = switchPattern(e._expr);
+                switchPattern(e._expr);
             }
             case Print p -> {
                 Object result = switchPattern(p._expr);
@@ -67,6 +68,14 @@ public class Interpreter {
                     result = switchPattern(vd._initializer);
                 }
                 env.defineVar(vd._identifier.getLexeme(), result);
+            }
+            case If i -> {
+                if (truthy(switchPattern(i._condition)))
+                    runStatement(i._ifStmt);
+                else if (i._elseStmt != null)
+                    runStatement(i._elseStmt);
+                else
+                    return;
             }
             default -> {
                 src.Tan.err.report(0, "Statement error");

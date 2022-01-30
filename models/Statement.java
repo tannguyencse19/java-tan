@@ -36,4 +36,16 @@ public interface Statement {
             _initializer = initializer;
         }
     }
+
+    public static class If implements Statement {
+        public final Expression _condition;
+        public final Statement _ifStmt;
+        public final Statement _elseStmt;
+
+        public If(Expression condition, Statement ifStmt, Statement elseStmt) {
+            _condition = condition;
+            _ifStmt = ifStmt;
+            _elseStmt = elseStmt;
+        }
+    }
 }

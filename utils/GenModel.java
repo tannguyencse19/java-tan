@@ -39,7 +39,8 @@ public class GenModel {
                 "Block: List<Statement> stmtList",
                 "Expr: Expression expr",
                 "Print: Expression expr",
-                "VarDeclare: Token identifier, Expression initializer"));
+                "VarDeclare: Token identifier, Expression initializer",
+                "If: Expression condition, Statement ifStmt, Statement elseStmt"));
     }
 
     /* --------- Helper function --------- */
@@ -57,7 +58,8 @@ public class GenModel {
         // print()) which make it ease to use to write a file
         PrintWriter writer = new PrintWriter(path, "utf-8"); // CAUTION: path can be wrong
 
-        writer.println("package models;\n");
+        writer.println("package models;");
+        writer.println("import java.util.List;"); // for Block statement
 
         writer.println("public interface " + filename + " {");
         /* --------- start main class --------- */
