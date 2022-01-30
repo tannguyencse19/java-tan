@@ -7,6 +7,18 @@ import models.Token;
 
 class Environment {
     private final Map<String, Object> values = new HashMap<>();
+    private final Environment linkPtr;
+
+    /**
+     * For {@code Global} Scope (Variable)
+     */
+    public Environment() {
+        linkPtr = null;
+    }
+
+    public Environment(Environment linkPtr) {
+        this.linkPtr = linkPtr;
+    }
 
     public void defineVar(String identifier, Object value) {
         values.put(identifier, value);
@@ -20,17 +32,20 @@ class Environment {
     public void assign(Token identifier, Object value) {
         if (values.containsKey(identifier.getLexeme())) {
             values.put(identifier.getLexeme(), value);
-            return;
-        }
-
-        throw new Interpreter().new RuntimeError(identifier,
-                "assignement to undefined variable: " + identifier.getLexeme());
+        } else if (linkPtr != null) {
+            linkPtr.assign(identifier, value);
+        } else
+            throw new Interpreter().new RuntimeError(identifier,
+                    "assignement to undefined variable: " + identifier.getLexeme());
     }
 
     public Object getValue(Token finding) {
         if (values.containsKey(finding.getLexeme()))
             return values.get(finding.getLexeme());
 
-        throw new Interpreter().new RuntimeError(finding, "undefined variable: " + finding.getLexeme());
+        if (linkPtr != null) {
+            return linkPtr.getValue(finding);
+        } else
+            throw new Interpreter().new RuntimeError(finding, "undefined variable: " + finding.getLexeme());
     }
 }
