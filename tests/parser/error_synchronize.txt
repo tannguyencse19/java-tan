@@ -1,0 +1,3 @@
++123; // Test Unary + error too
+(1 > 2;
+2 + 3;

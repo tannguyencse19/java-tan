@@ -8,13 +8,17 @@ import models.Expression;
 import models.Expression.Literal;
 import models.Expression.Grouping;
 import models.Expression.Unary;
+import models.Expression.VarAccess;
 import models.Expression.Binary;
 import models.Expression.Ternary;
 import models.Statement;
 import models.Statement.Expr;
 import models.Statement.Print;
+import models.Statement.VarDeclare;
 
 public class Interpreter {
+    private final Environment env = new Environment();
+
     public void run(List<Statement> ASTList) {
         try {
             for (Statement stmt : ASTList) {
@@ -28,8 +32,9 @@ public class Interpreter {
     /* --------- Helper function --------- */
 
     /**
-     * @implNote Have to code {@code Object result = switchPattern(e._expr);} because
-     * interface doesn't have fields
+     * @implNote Have to code {@code Object result = switchPattern(e._expr);}
+     *           because
+     *           interface doesn't have fields
      */
     private void runStatement(Statement s) {
         switch (s) {
@@ -39,6 +44,13 @@ public class Interpreter {
             case Print p -> {
                 Object result = switchPattern(p._expr);
                 System.out.println(clean(result));
+            }
+            case VarDeclare vd -> {
+                Object result = null;
+                if (vd._identifier != null) {
+                    result = switchPattern(vd._initializer);
+                }
+                env.set(vd._identifier.getLexeme(), result);
             }
             default -> {
                 src.Tan.err.report(0, "Statement error");
@@ -119,6 +131,9 @@ public class Interpreter {
                         Tan.err.report(u._operator, "unexpected unary operator");
                         return null;
                 }
+            }
+            case VarAccess va -> {
+                return env.get(va._identifer);
             }
             case Grouping g -> {
                 return switchPattern(g._expr);

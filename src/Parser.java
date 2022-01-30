@@ -51,7 +51,7 @@ public class Parser {
     private List<Statement> program() {
         List<Statement> stmtList = new ArrayList<>();
 
-        // NOTE: matchPeek already check EOF and end of line SEMI_COLON
+        // NOTE: matchPeek already check EOF
         while (matchPeek(SEMI_COLON)) {
             stmtList.add(declaration());
             current++; // HACK: Hot-fix - Pass over SEMI_COLON of current statement after finish
@@ -240,7 +240,7 @@ public class Parser {
     private boolean matchAtLeast(TokenType... typeList) {
         for (TokenType type : typeList) {
             if (isNextToken(type)) {
-                advanced(); // pass over that token
+                advance(); // pass over that token
                 return true; // match at least once
             }
         }
@@ -264,7 +264,7 @@ public class Parser {
     private TokenType matchAtLeastWithResult(TokenType... typeList) {
         for (TokenType type : typeList) {
             if (isNextToken(type)) {
-                advanced(); // pass over that token
+                advance(); // pass over that token
                 return type; // match at least once
             }
         }
@@ -291,9 +291,12 @@ public class Parser {
         return nextToken != EOF;
     }
 
-    private Token advanced() {
+    /**
+     * @implNote Often use in conjuction with {@link #nextToken()}
+     */
+    private Token advance() {
         if (!endOfFile())
-            current++; // NOTE: This cause coupling between advanced() and getToken()
+            current++; // NOTE: This cause coupling between advance() and getToken()
         return prevToken();
     }
 
@@ -304,6 +307,12 @@ public class Parser {
         return getToken(0);
     }
 
+    /**
+     * @implNote See {@link #getToken(int)} for "Why name nextToken although it get
+     *           current token?"
+     *
+     * @implNote Often use in conjuction with {@link #advance()}
+     */
     private Token nextToken() {
         return getToken(1);
     }
@@ -333,7 +342,25 @@ public class Parser {
         return getToken(0).getType() == EOF;
     }
 
-    /* --------- Error handle --------- */
+    private void synchronize() {
+        do {
+            advance(); // pass over the token which cause ParseError
+            switch (nextToken().getType()) {
+                case SEMI_COLON:
+                case CLASS:
+                case FUNCTION:
+                case VAR:
+                case FOR:
+                case IF:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                    return;
+            }
+        } while (!endOfFile());
+    }
+
+    /* ---------------- Error handle -------------------- */
 
     /**
      * @param token - Custom token
@@ -352,9 +379,9 @@ public class Parser {
      *
      */
     private void panicError(TokenType expected, String message) {
-        if (prevToken().getType() == expected || matchPeek(expected)) // NOTE: Use `prevToken` for case `advanced()` run
+        if (prevToken().getType() == expected || matchPeek(expected)) // NOTE: Use `prevToken` for case `advance()` run
                                                                       // before
-            advanced(); // = continue parsing
+            advance(); // = continue parsing
         else
             throw new ParseError(nextToken(), message); // Point error location to next token
     }
