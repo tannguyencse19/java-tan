@@ -1,0 +1,4 @@
+var a = "if statement block";
+if (true) {
+    print a;
+}

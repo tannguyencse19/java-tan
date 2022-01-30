@@ -5,6 +5,7 @@ import java.util.List;
 
 import models.Token;
 import models.TokenType;
+import static models.TokenType.*;
 import models.Expression;
 import models.Expression.VarAccess;
 import models.Expression.Literal;
@@ -21,8 +22,6 @@ import models.Statement.Print;
 import models.Statement.VarDeclare;
 import models.Statement.While;
 import models.Statement.If;
-
-import static models.TokenType.*;
 
 public class Parser {
     /**
@@ -116,9 +115,12 @@ public class Parser {
             Expression condition = expression();
             panicError(RIGHT_PARAN, "if statement missing ')' for condition");
 
-            // NOTE: No need to check block syntax '{', '}' as it also a statement
+            // NOTE: No need to panicError block syntax '{', '}' as it also a statement
             Statement ifStmt = statement();
-            ++current; // CAUTION: Hotfix - Pass over SEMI_COLON
+            if (getToken(1).getType() != RIGHT_BRACE) {
+                // CAUTION: Hotfix - Pass over SEMI_COLON if statement is not a block
+                ++current;
+            }
             Statement elseStmt = null;
             if (matchAtLeast(ELSE)) {
                 elseStmt = statement();

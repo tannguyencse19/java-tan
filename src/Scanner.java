@@ -158,6 +158,10 @@ public class Scanner {
         return source.charAt(current - 1); // NOTE: offset-by-1, due to current initial = 0
     }
 
+    private char prevChar() {
+        return (current == 0) ? source.charAt(current) : source.charAt(current - 1);
+    }
+
     /**
      * @implNote This function same as `readSource()` except it doesn't `++current`
      *
@@ -165,17 +169,11 @@ public class Scanner {
      *           value
      */
     private char nextChar() {
-        if (endOfFile())
-            return '\0';
-
-        return source.charAt(current); // NOTE: current Offset-by-1 nen khong can current+1
+        return endOfFile() ? '\0' : source.charAt(current); // NOTE: current Offset-by-1 nen khong can current+1
     }
 
     private char nextNextChar() {
-        if (endOfFile(1))
-            return '\0';
-
-        return source.charAt(current + 1);
+        return endOfFile(1) ? '\0' : source.charAt(current + 1);
     }
 
     // /**
@@ -261,8 +259,8 @@ public class Scanner {
         // CAUTION: Hotfix
         // Decrement to not pass over the character in readSource()
         // which cause while loop stop
-        char ch = nextChar();
-        if ((ch == ')' || ch == ';') && nextNextChar() != '\0')
+        char ch = prevChar();
+        if ((ch == ')' || ch == '}') && nextNextChar() != '\0')
             --current;
     }
 
