@@ -1,0 +1,6 @@
+print "short-circuit" or false or false;
+print "finish chain logic or";
+
+// result:
+// 123
+// finish chain logic or

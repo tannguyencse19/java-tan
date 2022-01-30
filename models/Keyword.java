@@ -21,8 +21,8 @@ public final class Keyword {
         keywords.put("function", FUNCTION);
         keywords.put("return", RETURN);
         keywords.put("class", CLASS);
-        // keywords.put("and", AND);
-        // keywords.put("or", OR);
+        keywords.put("and", LOGIC_AND);
+        keywords.put("or", LOGIC_OR);
         // keywords.put("super", SUPER);
         // keywords.put("this", THIS);
     }

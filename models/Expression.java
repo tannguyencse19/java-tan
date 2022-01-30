@@ -13,6 +13,16 @@ public VarAccess( Token identifer) {
 _identifer = identifer;
 }
 }
+public static class Logical implements Expression {
+public final Expression _lhs;
+public final Token _operator;
+public final Expression _rhs;
+public Logical( Expression lhs, Token operator, Expression rhs) {
+_lhs = lhs;
+_operator = operator;
+_rhs = rhs;
+}
+}
 public static class Grouping implements Expression {
 public final Expression _expr;
 public Grouping( Expression expr) {

@@ -8,6 +8,7 @@ import models.TokenType;
 import models.Expression;
 import models.Expression.VarAccess;
 import models.Expression.Literal;
+import models.Expression.Logical;
 import models.Expression.Ternary;
 import models.Expression.Unary;
 import models.Expression.Assign;
@@ -160,14 +161,40 @@ public class Parser {
     }
 
     private Expression ternary() {
-        Expression lhs = equality();
+        Expression lhs = logicOr();
 
         while (matchAtLeast(QUESTION, COLON)) {
-            Expression first = equality();
+            Expression first = logicOr();
             panicError(COLON, "expect ':' ");
-            Expression second = equality();
+            Expression second = logicOr();
 
             lhs = new Ternary(lhs, new Token(TERNARY, "?:", prevToken().getLineID()), first, second);
+        }
+
+        return lhs;
+    }
+
+    private Expression logicOr() {
+        Expression lhs = logicAnd();
+
+        while (matchAtLeast(LOGIC_OR)) {
+            Token operator = prevToken();
+            Expression rhs = logicAnd();
+
+            lhs = new Logical(lhs, operator, rhs);
+        }
+
+        return lhs;
+    }
+
+    private Expression logicAnd() {
+        Expression lhs = equality();
+
+        while (matchAtLeast(LOGIC_AND)) {
+            Token operator = prevToken();
+            Expression rhs = equality();
+
+            lhs = new Logical(lhs, operator, rhs);
         }
 
         return lhs;
@@ -321,11 +348,11 @@ public class Parser {
      *           {@link #matchAtLeast(TokenType...)}
      */
     private boolean matchPeek(TokenType type) {
-        int temp = (current == 0) ? 0 : current - 1; // NOTE: Offset to get nextToken below
+        int temp = (current == 0) ? 0 : current;
 
         TokenType nextToken = tokenList.get(temp).getType();
 
-        // Shouldn't use do-while
+        // CAUTION: Don't use do-while
         // Edge case: When current == list.size => do before while cause
         // current out-of-bound
         while (nextToken != EOF && nextToken != type) {
@@ -391,8 +418,11 @@ public class Parser {
     }
 
     private void synchronize() {
-        do {
-            advance(); // pass over the token which cause ParseError
+        // CAUTION: Don't use do-while
+        // Edge case: When current == list.size => do before while cause
+        // current out-of-bound
+        advance(); // pass over the token which cause ParseError
+        while (!endOfFile()) {
             switch (nextToken().getType()) {
                 case SEMI_COLON:
                 case CLASS:
@@ -405,7 +435,8 @@ public class Parser {
                 case RETURN:
                     return;
             }
-        } while (!endOfFile());
+            advance();
+        }
     }
 
     /* ---------------- Error handle -------------------- */

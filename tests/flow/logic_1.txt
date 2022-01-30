@@ -1,0 +1,11 @@
+print "logic and" and false;
+
+// expected: logic and; result: false
+// Reason:
+// 1. The short-circuit code:
+//      if (!truthy(lhs))
+//          return lhs;
+// lhs = "logic and" truthiness = true => not return lhs
+// But logicOr can do this, see testcase "logic_2"
+// 2. Can't do this (print "logic and") due to grouping can't
+// call `statement()` in Interpreter.java

@@ -29,6 +29,7 @@ public class GenModel {
                 // NOTE: Case-sensitive
                 "Literal: Object value", // NOTE: Object is the root of all types => Abstract type
                 "VarAccess: Token identifer",
+                "Logical: Expression lhs, Token operator, Expression rhs",
                 "Grouping: Expression expr",
                 "Unary: Token operator, Expression expr",
                 "Assign: Token identifier, Expression value",

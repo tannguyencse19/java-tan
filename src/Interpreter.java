@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Objects;
 
 import models.Token;
+import static models.TokenType.*;
 import models.Expression;
 import models.Expression.Literal;
 import models.Expression.Grouping;
+import models.Expression.Logical;
 import models.Expression.Unary;
 import models.Expression.VarAccess;
 import models.Expression.Binary;
@@ -161,6 +163,20 @@ public class Interpreter {
                         Tan.err.report(u._operator, "unexpected unary operator");
                         return null;
                 }
+            }
+            case Logical l -> {
+                Object lhs = switchPattern(l._lhs);
+
+                // Short-circuit
+                if (l._operator.getType() == LOGIC_AND) {
+                    if (!truthy(lhs))
+                        return lhs;
+                } else {
+                    if (truthy(lhs))
+                        return lhs;
+                }
+
+                return switchPattern(l._rhs);
             }
             case VarAccess va -> {
                 return env.getValue(va._identifer);
