@@ -11,6 +11,7 @@ import models.Expression.Unary;
 import models.Expression.VarAccess;
 import models.Expression.Binary;
 import models.Expression.Ternary;
+import models.Expression.Assign;
 import models.Statement;
 import models.Statement.Expr;
 import models.Statement.Print;
@@ -47,10 +48,10 @@ public class Interpreter {
             }
             case VarDeclare vd -> {
                 Object result = null;
-                if (vd._identifier != null) {
+                if (vd._initializer != null) {
                     result = switchPattern(vd._initializer);
                 }
-                env.set(vd._identifier.getLexeme(), result);
+                env.defineVar(vd._identifier.getLexeme(), result);
             }
             default -> {
                 src.Tan.err.report(0, "Statement error");
@@ -63,6 +64,13 @@ public class Interpreter {
      */
     private Object switchPattern(Expression e) {
         switch (e) {
+            case Assign a -> {
+                Object rhsResult = switchPattern(a._value);
+
+                env.assign(a._identifier, rhsResult);
+
+                return rhsResult;
+            }
             case Ternary t -> {
                 Object rhs_second = switchPattern(t._rhs_second);
                 Object rhs_first = switchPattern(t._rhs_first);
@@ -131,7 +139,7 @@ public class Interpreter {
                 }
             }
             case VarAccess va -> {
-                return env.get(va._identifer);
+                return env.getValue(va._identifer);
             }
             case Grouping g -> {
                 return switchPattern(g._expr);
