@@ -261,7 +261,9 @@ public class Scanner {
         // CAUTION: Hotfix
         // Decrement to not pass over the character in readSource()
         // which cause while loop stop
-        --current;
+        char ch = nextChar();
+        if ((ch == ')' || ch == ';') && nextNextChar() != '\0')
+            --current;
     }
 
     /**

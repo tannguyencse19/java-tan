@@ -19,6 +19,7 @@ import models.Statement.Block;
 import models.Statement.Expr;
 import models.Statement.Print;
 import models.Statement.VarDeclare;
+import models.Statement.While;
 import models.Statement.If;
 
 import static models.TokenType.*;
@@ -115,6 +116,7 @@ public class Parser {
             Expression condition = expression();
             panicError(RIGHT_PARAN, "if statement missing ')' for condition");
 
+            // NOTE: No need to check block syntax '{', '}' as it also a statement
             Statement ifStmt = statement();
             ++current; // CAUTION: Hotfix - Pass over SEMI_COLON
             Statement elseStmt = null;
@@ -122,6 +124,14 @@ public class Parser {
                 elseStmt = statement();
             }
             return new If(condition, ifStmt, elseStmt);
+        } else if (matchAtLeast(WHILE)) {
+            panicError(LEFT_PARAN, "if statement missing '(' for condition");
+            Expression condition = expression();
+            panicError(RIGHT_PARAN, "if statement missing ')' for condition");
+
+            Statement body = statement();
+            // ++current; // CAUTION: Hotfix - Pass over SEMI_COLON
+            return new While(condition, body);
         } else if (matchAtLeast(PRINT)) {
             Expression expr = expression(); // CAUTION: Hot-fix - With PrintStatement, need to pass over token Print
             return new Print(expr);

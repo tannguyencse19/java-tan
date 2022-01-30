@@ -20,6 +20,7 @@ import models.Statement.Expr;
 import models.Statement.Print;
 import models.Statement.VarDeclare;
 import models.Statement.If;
+import models.Statement.While;
 
 public class Interpreter {
     private Environment env = new Environment();
@@ -57,13 +58,6 @@ public class Interpreter {
                 Environment local = new Environment(env);
                 runBlock(b._stmtList, local);
             }
-            case Expr e -> {
-                switchPattern(e._expr);
-            }
-            case Print p -> {
-                Object result = switchPattern(p._expr);
-                System.out.println(clean(result));
-            }
             case VarDeclare vd -> {
                 Object result = null;
                 if (vd._initializer != null) {
@@ -78,6 +72,17 @@ public class Interpreter {
                     runStatement(i._elseStmt);
                 else
                     return;
+            }
+            case While w -> {
+                while (truthy(switchPattern(w._condition)))
+                    runStatement(w._body);
+            }
+            case Print p -> {
+                Object result = switchPattern(p._expr);
+                System.out.println(clean(result));
+            }
+            case Expr e -> {
+                switchPattern(e._expr);
             }
             default -> {
                 src.Tan.err.report(0, "Statement error");

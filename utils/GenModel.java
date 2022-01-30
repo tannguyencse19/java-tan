@@ -41,7 +41,8 @@ public class GenModel {
                 "Expr: Expression expr",
                 "Print: Expression expr",
                 "VarDeclare: Token identifier, Expression initializer",
-                "If: Expression condition, Statement ifStmt, Statement elseStmt"));
+                "If: Expression condition, Statement ifStmt, Statement elseStmt",
+                "While: Expression condition, Statement body"));
     }
 
     /* --------- Helper function --------- */

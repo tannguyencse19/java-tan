@@ -37,4 +37,12 @@ _ifStmt = ifStmt;
 _elseStmt = elseStmt;
 }
 }
+public static class While implements Statement {
+public final Expression _condition;
+public final Statement _body;
+public While( Expression condition, Statement body) {
+_condition = condition;
+_body = body;
+}
+}
 }
