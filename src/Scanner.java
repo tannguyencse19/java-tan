@@ -252,7 +252,9 @@ public class Scanner {
             c = readSource();
         }
 
-        String id = source.substring(start, current - 1); // why -1 ? see caution below
+        // CAUTION: Hotfix - Can't get variable name which has 1 char
+        // why -1 ? see caution below
+        String id = (start == current - 1) ? source.substring(start, current) : source.substring(start, current - 1);
         TokenType type = (Keyword.get(id) != null) ? Keyword.get(id) : IDENTIFIER;
         // addToken(type);
         // CAUTION: Hotfix - Must get exactly lexeme for variable identifier to work
@@ -263,8 +265,9 @@ public class Scanner {
         // CAUTION: Hotfix
         // Decrement to not pass over the character in readSource()
         // which cause while loop stop
+        // CAUTION: Controversy ';'
         char ch = prevChar();
-        if ((ch == ')' || ch == '}') && nextNextChar() != '\0')
+        if ((ch == ')' || ch == '}' || ch == ';') && nextNextChar() != '\0')
             --current;
     }
 
