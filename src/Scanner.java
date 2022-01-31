@@ -254,7 +254,11 @@ public class Scanner {
 
         String id = source.substring(start, current - 1); // why -1 ? see caution below
         TokenType type = (Keyword.get(id) != null) ? Keyword.get(id) : IDENTIFIER;
-        addToken(type);
+        // addToken(type);
+        // CAUTION: Hotfix - Must get exactly lexeme for variable identifier to work
+        // Currently, no need to refactor to new `addToken()`
+        // because only this function used
+        tokenList.add(new Token(type, id, line));
 
         // CAUTION: Hotfix
         // Decrement to not pass over the character in readSource()

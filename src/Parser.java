@@ -1,6 +1,7 @@
 package src;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import models.Token;
@@ -60,8 +61,9 @@ public class Parser {
         // NOTE: matchPeek already check EOF
         while (matchPeek(SEMI_COLON)) {
             stmtList.add(declaration());
-            // CAUTION: Hot-fix - Due to current++ at different place, current might be ==
-            current++; // CAUTION: Hot-fix - Pass over SEMI_COLON of current statement after finish
+            // CAUTION: Hotfix - Pass over SEMI_COLON of current statement after finish
+            // if match, then ++current; else, no
+            matchAtLeast(SEMI_COLON, RIGHT_BRACE);
         }
 
         return stmtList;
@@ -72,7 +74,9 @@ public class Parser {
 
         while (!isNextToken(RIGHT_BRACE)) {
             stmtList.add(declaration());
-            current++; // CAUTION: Same reason like `program()`
+            // CAUTION: Hotfix - Same as `program()`
+            // if match, then ++current; else, no
+            matchAtLeast(SEMI_COLON, RIGHT_BRACE);
         }
 
         // CAUTION: Hot-fix - RIGHT_BRACE is the condition to exit while loop
@@ -127,13 +131,55 @@ public class Parser {
             }
             return new If(condition, ifStmt, elseStmt);
         } else if (matchAtLeast(WHILE)) {
-            panicError(LEFT_PARAN, "if statement missing '(' for condition");
+            panicError(LEFT_PARAN, "while loop missing '(' at condition");
             Expression condition = expression();
-            panicError(RIGHT_PARAN, "if statement missing ')' for condition");
+            panicError(RIGHT_PARAN, "while loop missing ')' at condition");
 
             Statement body = statement();
-            // ++current; // CAUTION: Hotfix - Pass over SEMI_COLON
+            // NOTE: No need to Hotfix ++current due to
+            // `program()`, `block()`, `matchAtLeast(IF)` already handle
             return new While(condition, body);
+        } else if (matchAtLeast(FOR)) {
+            panicError(LEFT_PARAN, "for loop missing '(' at the beginning of initializer");
+            Statement initializer = null;
+            if (!matchAtLeast(SEMI_COLON)) {
+                initializer = declaration();
+                panicError(SEMI_COLON, "for loop missing ';' at initializer");
+            }
+            Expression condition = null;
+            if (!matchAtLeast(SEMI_COLON)) {
+                condition = expression();
+                panicError(SEMI_COLON, "for loop missing ';' at condition");
+            }
+            Expression iterate = null;
+            if (!matchAtLeast(SEMI_COLON)) {
+                iterate = expression();
+                panicError(RIGHT_PARAN, "for loop missing ')' at the end of iterate");
+            }
+
+            Statement body = null;
+            if (!matchAtLeast(SEMI_COLON)) {
+                body = statement();
+            }
+
+            // Syntactic Sugar-ize
+            if (condition == null) {
+                condition = new Literal(true);
+            }
+            if (iterate != null) {
+                // NOTE: If body == null
+                // No need a block, also that will cause Interpreter create new environment
+                // which means empty body can't access outer scope variable
+                // See testcase `for_2.txt`
+                body = (body == null) ? new Expr(iterate)
+                        : new Block(Arrays.asList(body, new Expr(iterate)));
+            }
+            body = new While(condition, body);
+            if (initializer != null) {
+                body = new Block(Arrays.asList(initializer, body));
+            }
+
+            return body;
         } else if (matchAtLeast(PRINT)) {
             Expression expr = expression(); // CAUTION: Hot-fix - With PrintStatement, need to pass over token Print
             return new Print(expr);
@@ -313,6 +359,8 @@ public class Parser {
 
     /**
      * Match at least one type in `typeList`
+     * <p />
+     * Same as {@code match()}
      *
      * @implNote If match, that token will be <b>SKIP</b> due to ++current
      *           <p />

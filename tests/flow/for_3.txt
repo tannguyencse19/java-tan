@@ -1,10 +1,10 @@
-var i = 0;
-while (i < 5) {
-    i = i + 1;
+for (var i = 0; i < 5; i = i + 1) {
     print i;
 }
-print i;
+print "for block syntax";
 
 // `print i` with block syntax. outer `print i` to check Parser.java
 // if it parse error '}'
-// result: 1 2 3 4 5
+// result:
+// 0 1 2 3 4
+// for block syntax

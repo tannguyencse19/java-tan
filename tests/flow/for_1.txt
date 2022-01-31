@@ -1,0 +1,5 @@
+for (var i = 0; i < 5; i = i + 1) print i;
+
+// `print i` without block syntax
+// at the same line with for loop
+// result: 0 1 2 3 4
