@@ -7,6 +7,9 @@ import models.Token;
 
 class Environment {
     private final Map<String, Object> values = new HashMap<>();
+    /**
+     * Same as {@code enclosing}
+     */
     private final Environment currentEnv;
 
     /**
@@ -26,6 +29,9 @@ class Environment {
         currentEnv = newLocalEnv;
     }
 
+    /**
+     * Same as {@code define()}
+     */
     public void defineVar(String identifier, Object value) {
         values.put(identifier, value);
     }
@@ -45,6 +51,9 @@ class Environment {
                     "assignement to undefined variable: " + identifier.getLexeme());
     }
 
+    /**
+     * Same as {@code get()}
+     */
     public Object getValue(Token finding) {
         if (values.containsKey(finding.getLexeme()))
             return values.get(finding.getLexeme());

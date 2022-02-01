@@ -26,9 +26,23 @@ import models.Statement.If;
 import models.Statement.While;
 
 public class Interpreter {
-    private Environment env = new Environment();
+    final Environment globals = new Environment();
+    private Environment env = globals;
 
-    // NOTE: global scope
+    Interpreter() {
+        globals.defineVar("clock", new TanCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                return (double)System.currentTimeMillis() / 1000.0;
+            }
+        });
+    }
+
     public void run(List<Statement> ASTList) {
         runBlock(ASTList, env);
     }
