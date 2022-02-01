@@ -233,8 +233,8 @@ public class Parser {
                 returnVal = expression();
             }
 
-            // CAUTION: Hotfix - Wrapper function have deal with this
-            // This is just "short-circuit"
+            // CAUTION: Hotfix - Wrapper function already deal with this
+            // This line is just "short-circuit"
             panicError(SEMI_COLON, "return missing ';' at the end");
             --current;
             return new Return(keyword, returnVal);

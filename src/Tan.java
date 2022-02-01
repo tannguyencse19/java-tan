@@ -74,7 +74,7 @@ public class Tan {
      */
     private static void modeFile(String file) throws IOException {
         System.out.println("\ntan " + file + "\n");
-        byte[] content = Files.readAllBytes(Paths.get("tests/function/return_3.txt")); // TODO: Debug
+        byte[] content = Files.readAllBytes(Paths.get("tests/function/closure.txt")); // TODO: Debug
 
         // System.out.println(new String(content)); // test
         run(new String(content, Charset.defaultCharset()));
@@ -111,9 +111,11 @@ public class Tan {
 
     public class TanFunction implements TanCallable {
         private final FuncPrototype declaration;
+        private final Environment closure;
 
-        TanFunction(FuncPrototype declaration) {
+        TanFunction(FuncPrototype declaration, Environment closure) {
             this.declaration = declaration;
+            this.closure = closure;
         }
 
         @Override
@@ -123,7 +125,7 @@ public class Tan {
 
         @Override
         public Object call(Interpreter interpreter, List<Object> args) {
-            Environment local = new Environment(interpreter.globals);
+            Environment local = new Environment(closure);
 
             for (int idx = 0; idx < this.arity(); idx++) {
                 local.defineVar(declaration._params.get(idx).getLexeme(), args.get(idx));

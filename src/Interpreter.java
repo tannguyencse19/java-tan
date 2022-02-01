@@ -98,7 +98,7 @@ public class Interpreter {
                     runStatement(w._body);
             }
             case FuncPrototype fp -> {
-                TanFunction func = new Tan().new TanFunction(fp);
+                TanFunction func = new Tan().new TanFunction(fp, env);
                 env.defineVar(fp._identifer.getLexeme(), func); // add function object
             }
             case Return r -> {
