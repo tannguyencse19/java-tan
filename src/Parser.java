@@ -24,6 +24,7 @@ import models.Statement.Print;
 import models.Statement.VarDeclare;
 import models.Statement.While;
 import models.Statement.If;
+import models.Statement.FuncPrototype;
 
 public class Parser {
     /**
@@ -93,6 +94,9 @@ public class Parser {
         try {
             if (matchAtLeast(VAR))
                 return varStatement();
+            else if (matchAtLeast(FUNCTION))
+                return funcStatement("function");
+
             return statement();
         } catch (ParseError err) {
             synchronize();
@@ -101,15 +105,49 @@ public class Parser {
     }
 
     private Statement varStatement() {
-        panicError(IDENTIFIER, "identifier need to be initialized before used");
+        panicError(IDENTIFIER, "expect variable name");
         Token identifier = prevToken();
 
-        Expression initializer = null; // NOTE: No default value
+        Expression initializer = null; // NOTE: Initial no value
         if (matchAtLeast(EQUAL)) {
             initializer = expression();
         }
 
         return new VarDeclare(identifier, initializer);
+    }
+
+    private Statement funcStatement(String kind) {
+        // NOTE: Differentiate between function and class function (method)
+
+        panicError(IDENTIFIER, "expect " + kind + " name");
+
+        Token identifier = prevToken();
+
+        panicError(LEFT_PAREN, "expect " + kind + " parameters");
+        List<Token> params = new ArrayList<>(); // NOTE: Initial no argument
+        if (!isNextToken(RIGHT_PAREN)) { // handle no argument edge case
+            do {
+                if (params.size() >= 255)
+                    panicErrorCustom(nextToken(), "can't have more than 255 parameters");
+
+                Token nextParam = prevToken();
+                params.add(nextParam);
+            } while (matchAtLeast(COMMA));
+        }
+        panicError(RIGHT_PAREN, "expect ')' after define " + kind + " parameters");
+
+        List<Statement> body = new ArrayList<>();
+        if (matchAtLeast(LEFT_BRACE))
+            body = block();
+        else
+            body = Arrays.asList(statement());
+
+        // NOTE: No need panicError block syntax as it's handled inside `block()`
+        if (getToken(1).getType() != RIGHT_BRACE) {
+            panicError(SEMI_COLON, "expect ';' at the end of " + kind + " body");
+        }
+
+        return new FuncPrototype(identifier, params, body);
     }
 
     private Statement statement() {
@@ -120,11 +158,12 @@ public class Parser {
             Expression condition = expression();
             panicError(RIGHT_PAREN, "if statement missing ')' for condition");
 
-            // NOTE: No need to panicError block syntax '{', '}' as it also a statement
             Statement ifStmt = statement();
+            // NOTE: No need panicError block syntax as it's handled inside `block()`
             if (getToken(1).getType() != RIGHT_BRACE) {
                 // CAUTION: Hotfix - Pass over SEMI_COLON if statement is not a block
-                ++current;
+                // ++current;
+                panicError(SEMI_COLON, "expect ';' at the end of statement");
             }
             Statement elseStmt = null;
             if (matchAtLeast(ELSE)) {
@@ -519,7 +558,7 @@ public class Parser {
     private Expression finishCall(Expression funcName) {
         List<Expression> args = new ArrayList<>();
 
-        if (!isNextToken(RIGHT_PAREN)) {
+        if (!isNextToken(RIGHT_PAREN)) { // handle no argument edge case
             do {
                 if (args.size() >= 255)
                     panicErrorCustom(nextToken(), "can't have more than 255 arguments");
@@ -542,6 +581,7 @@ public class Parser {
 
     /**
      * Same as {@code error()}
+     *
      * @param token - Custom token
      */
     private ParseError panicErrorCustom(Token token, String message) {
