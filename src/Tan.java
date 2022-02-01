@@ -10,6 +10,7 @@ import java.util.List;
 
 import models.Expression;
 import models.Statement;
+import models.Statement.FuncPrototype;
 import models.Token;
 import utils.ASTPrint;
 
@@ -56,7 +57,7 @@ public class Tan {
         System.out.println("debug");
     }
 
-    /* --------- Helper function --------- */
+    /* ---------------- Helper function -------------------- */
 
     /**
      * @implNote Has to make it `static` due to being called in `static main()`
@@ -72,7 +73,7 @@ public class Tan {
      */
     private static void modeFile(String file) throws IOException {
         System.out.println("\ntan " + file + "\n");
-        byte[] content = Files.readAllBytes(Paths.get("tests/flow/for_4_p144.txt")); // TODO: Debug
+        byte[] content = Files.readAllBytes(Paths.get("tests/function/helloworld.txt")); // TODO: Debug
 
         // System.out.println(new String(content)); // test
         run(new String(content, Charset.defaultCharset()));
@@ -101,8 +102,40 @@ public class Tan {
         }
     }
 
+
     public interface TanCallable {
         int arity(); // = number of arguments pre-defined
         Object call(Interpreter interpreter, List<Object> args);
+    }
+
+    public class TanFunction implements TanCallable {
+        private final FuncPrototype declaration;
+
+        TanFunction(FuncPrototype declaration) {
+            this.declaration = declaration;
+        }
+
+        @Override
+        public int arity() {
+            return declaration._params.size();
+        }
+
+        @Override
+        public Object call(Interpreter interpreter, List<Object> args) {
+            Environment local = new Environment(interpreter.globals);
+
+            for (int idx = 0; idx < this.arity(); idx++) {
+                local.defineVar(declaration._params.get(idx).getLexeme(), args.get(idx));
+            }
+
+            interpreter.runBlock(declaration._blockStmt, local);
+
+            return null; // NOTE: Will fix later
+        }
+
+        @Override
+        public String toString() {
+            return "<fn " + declaration._identifer.getLexeme() + ">";
+        }
     }
 }

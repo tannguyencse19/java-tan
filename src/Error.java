@@ -38,8 +38,16 @@ public class Error {
     }
 
     public void report(RuntimeError err) {
-        System.err.println(err.getMessage() +
-                "\n[line " + err.token.getLineID() + "]");
+        if (err.token != null) {
+            System.err.println(err.getMessage() +
+                    "\n[line " + err.token.getLineID() + "]");
+        } else if (err.expr != null) {
+            System.err.println(err.getMessage() +
+                    "\n[expression " + err.expr + "]");
+        } else if (err.stmt != null) {
+            System.err.println(err.getMessage() +
+                    "\n[statement " + err.stmt + "]");
+        }
         setRuntimeError(true);
     }
 
@@ -61,6 +69,5 @@ public class Error {
     }
 
     /* ---------------- Error Type -------------------- */
-
 
 }

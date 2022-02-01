@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 import src.Tan.TanCallable;
+import src.Tan.TanFunction;
 import models.Token;
 import static models.TokenType.*;
 import models.Expression;
@@ -24,6 +25,7 @@ import models.Statement.Print;
 import models.Statement.VarDeclare;
 import models.Statement.If;
 import models.Statement.While;
+import models.Statement.FuncPrototype;
 
 public class Interpreter {
     final Environment globals = new Environment();
@@ -38,7 +40,7 @@ public class Interpreter {
 
             @Override
             public Object call(Interpreter interpreter, List<Object> args) {
-                return (double)System.currentTimeMillis() / 1000.0;
+                return (double) System.currentTimeMillis() / 1000.0;
             }
         });
     }
@@ -49,7 +51,7 @@ public class Interpreter {
 
     /* --------- Helper function --------- */
 
-    private void runBlock(List<Statement> stmtList, Environment currentEnv) {
+    public void runBlock(List<Statement> stmtList, Environment currentEnv) {
         Environment prevEnv = this.env;
         try {
             this.env = currentEnv; // FOR DEBUG: global scope currentEnv = prevEnv
@@ -93,6 +95,10 @@ public class Interpreter {
             case While w -> {
                 while (truthy(switchPattern(w._condition)))
                     runStatement(w._body);
+            }
+            case FuncPrototype fp -> {
+                TanFunction func = new Tan().new TanFunction(fp);
+                env.defineVar(fp._identifer.getLexeme(), func); // add function object
             }
             case Print p -> {
                 Object result = switchPattern(p._expr);
@@ -170,6 +176,7 @@ public class Interpreter {
                         return (double) lhs / (double) rhs;
                     default:
                         throwError(b._operator, "unexpected binary operator");
+                        return null;
                 }
             }
             case Unary u -> {
@@ -182,7 +189,7 @@ public class Interpreter {
                         verifyNumber(u._operator, "operand of unary '-' is not a number", rhs);
                         return -((double) rhs);
                     default:
-                        Tan.err.report(u._operator, "unexpected unary operator");
+                        throwError(u._operator, "unexpected unary operator");
                         return null;
                 }
             }
@@ -231,7 +238,7 @@ public class Interpreter {
                 return l._value;
             }
             default -> {
-                src.Tan.err.report(0, "Expression error");
+                throwError(e, "Expression error");
                 return null;
             }
         }
@@ -286,30 +293,47 @@ public class Interpreter {
 
     public class RuntimeError extends RuntimeException {
         final Token token;
+        final Expression expr;
         final Statement stmt;
 
         RuntimeError(Token operator, String message) {
             super(message);
             token = operator;
+            expr = null;
+            stmt = null;
+        }
+
+        RuntimeError(Expression expression, String message) {
+            super(message);
+            token = null;
+            expr = expression;
             stmt = null;
         }
 
         RuntimeError(Statement statement, String message) {
             super(message);
-            stmt = statement;
             token = null;
+            expr = null;
+            stmt = statement;
         }
     };
 
     /**
-     * Wrapper for {@code throw new RuntimeError(token, message)}
+     * Wrapper for {@code throw new RuntimeError()}
      */
     private void throwError(Token token, String message) {
         throw new RuntimeError(token, message);
     }
 
     /**
-     * Wrapper for {@code throw new RuntimeError(token, message)}
+     * Wrapper for {@code throw new RuntimeError()}
+     */
+    private void throwError(Expression expression, String message) {
+        throw new RuntimeError(expression, message);
+    }
+
+    /**
+     * Wrapper for {@code throw new RuntimeError()}
      */
     private void throwError(Statement statement, String message) {
         throw new RuntimeError(statement, message);
