@@ -47,10 +47,10 @@ public class Scanner {
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence#table
         switch (c) {
             case '(':
-                addToken(LEFT_PARAN);
+                addToken(LEFT_PAREN);
                 break;
             case ')':
-                addToken(RIGHT_PARAN);
+                addToken(RIGHT_PAREN);
                 break;
             case '{':
                 addToken(LEFT_BRACE);

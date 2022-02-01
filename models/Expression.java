@@ -29,6 +29,16 @@ public Grouping( Expression expr) {
 _expr = expr;
 }
 }
+public static class Call implements Expression {
+public final Expression _funcName;
+public final Token _closeParen;
+public final List<Expression> _arguments;
+public Call( Expression funcName, Token closeParen, List<Expression> arguments) {
+_funcName = funcName;
+_closeParen = closeParen;
+_arguments = arguments;
+}
+}
 public static class Unary implements Expression {
 public final Token _operator;
 public final Expression _expr;

@@ -9,7 +9,7 @@ public enum TokenType {
     INCREMENT, DECREMENT,
     MORE, MORE_EQUAL, LESS, LESS_EQUAL, EQUAL_EQUAL, NOT_EQUAL,
     LOGIC_NOT, LOGIC_AND, LOGIC_OR,
-    LEFT_PARAN, RIGHT_PARAN, LEFT_BRACE, RIGHT_BRACE,
+    LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
     TERNARY,
 
     // Literals type
@@ -30,6 +30,7 @@ public enum TokenType {
     // Others
     /**
      * Example:
+     *
      * <pre>
      * private TokenType match(TokenType type) {
      *     if (isNextToken(type)) {

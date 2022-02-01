@@ -100,4 +100,9 @@ public class Tan {
             err.setError(false);
         }
     }
+
+    public interface TanCallable {
+        int arity(); // = number of arguments pre-defined
+        Object call(Interpreter interpreter, List<Object> args);
+    }
 }

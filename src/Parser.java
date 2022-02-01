@@ -12,6 +12,7 @@ import models.Expression.VarAccess;
 import models.Expression.Literal;
 import models.Expression.Logical;
 import models.Expression.Ternary;
+import models.Expression.Call;
 import models.Expression.Unary;
 import models.Expression.Assign;
 import models.Expression.Binary;
@@ -83,7 +84,7 @@ public class Parser {
         // CAUTION: so panicError will never happended except it is endOfFile
         // panicError(RIGHT_BRACE, "expected '}' to close block");
         if (endOfFile())
-            throwError(prevToken(), "expected '}' to close block");
+            panicErrorCustom(prevToken(), "expected '}' to close block");
 
         return stmtList;
     }
@@ -115,9 +116,9 @@ public class Parser {
         if (matchAtLeast(LEFT_BRACE)) {
             return new Block(block());
         } else if (matchAtLeast(IF)) {
-            panicError(LEFT_PARAN, "if statement missing '(' for condition");
+            panicError(LEFT_PAREN, "if statement missing '(' for condition");
             Expression condition = expression();
-            panicError(RIGHT_PARAN, "if statement missing ')' for condition");
+            panicError(RIGHT_PAREN, "if statement missing ')' for condition");
 
             // NOTE: No need to panicError block syntax '{', '}' as it also a statement
             Statement ifStmt = statement();
@@ -131,16 +132,16 @@ public class Parser {
             }
             return new If(condition, ifStmt, elseStmt);
         } else if (matchAtLeast(WHILE)) {
-            panicError(LEFT_PARAN, "while loop missing '(' at condition");
+            panicError(LEFT_PAREN, "while loop missing '(' at condition");
             Expression condition = expression();
-            panicError(RIGHT_PARAN, "while loop missing ')' at condition");
+            panicError(RIGHT_PAREN, "while loop missing ')' at condition");
 
             Statement body = statement();
             // NOTE: No need to Hotfix ++current due to
             // `program()`, `block()`, `matchAtLeast(IF)` already handle
             return new While(condition, body);
         } else if (matchAtLeast(FOR)) {
-            panicError(LEFT_PARAN, "for loop missing '(' at the beginning of initializer");
+            panicError(LEFT_PAREN, "for loop missing '(' at the beginning of initializer");
             Statement initializer = null;
             if (!matchAtLeast(SEMI_COLON)) {
                 initializer = declaration();
@@ -154,7 +155,7 @@ public class Parser {
             Expression iterate = null;
             if (!matchAtLeast(SEMI_COLON)) {
                 iterate = expression();
-                panicError(RIGHT_PARAN, "for loop missing ')' at the end of iterate");
+                panicError(RIGHT_PAREN, "for loop missing ')' at the end of iterate");
             }
 
             Statement body = null;
@@ -202,7 +203,7 @@ public class Parser {
         Expression lhs = ternary(); // also identifier
 
         if (matchAtLeast(EQUAL)) {
-            Token equal = prevToken(); // only for `throwError()`
+            Token equal = prevToken(); // only for `panicErrorCustom()`
             Expression rhs = ternary(); // also value
 
             if (lhs instanceof VarAccess) {
@@ -210,7 +211,7 @@ public class Parser {
                 return new Assign(identifier, rhs);
             }
 
-            throwError(equal, "Invalid assignment identiifier");
+            panicErrorCustom(equal, "Invalid assignment identiifier");
         }
 
         // NOTE: It means assignment expr is a ternary expr
@@ -321,14 +322,28 @@ public class Parser {
 
         while (matchResult != NONE) {
             if (matchResult == PLUS)
-                throwError(nextToken(), "Unary '+'expressions are not supported");
+                panicErrorCustom(nextToken(), "Unary '+'expressions are not supported");
 
             Token operator = prevToken();
             Expression rhs = unary();
             return new Unary(operator, rhs);
         }
 
-        return primary();
+        return call();
+    }
+
+    private Expression call() {
+        Expression curry = primary(); // also funcName
+
+        while (true) {
+            if (matchAtLeast(LEFT_PAREN)) {
+                curry = finishCall(curry);
+            } else {
+                break;
+            }
+        }
+
+        return curry;
     }
 
     private Expression primary() {
@@ -340,15 +355,15 @@ public class Parser {
             return new Literal(null);
         else if (matchAtLeast(NUMBER, STRING))
             return new Literal(prevToken().getLiteral());
-        else if (matchAtLeast(LEFT_PARAN)) {
+        else if (matchAtLeast(LEFT_PAREN)) {
             Expression e = expression();
-            panicError(RIGHT_PARAN, "expect ')' after expression");
+            panicError(RIGHT_PAREN, "expect ')' after expression");
 
             return new Grouping(e);
         } else if (matchAtLeast(IDENTIFIER))
             return new VarAccess(prevToken());
         else {
-            throwError(nextToken(), "Expect expression");
+            panicErrorCustom(nextToken(), "Expect expression");
             // FIX: Potential erase current parse result, which isn't Panic Error Handling
             // page 91
             return new Literal(null);
@@ -386,7 +401,7 @@ public class Parser {
      *         TokenType matchResult = matchAtLeastWithResult(SUBTRACT, PLUS);
      *
      *         while (matchResult != NIL) {
-     *              if (matchResult == PLUS) throwError(...);
+     *              if (matchResult == PLUS) panicErrorCustom(...);
      *         }
      *         </pre>
      */
@@ -440,6 +455,8 @@ public class Parser {
     }
 
     /**
+     * Same as {@code peek()}
+     *
      * @implNote See {@link #getToken(int)} for "Why name nextToken although it get
      *           current token?"
      *
@@ -499,19 +516,42 @@ public class Parser {
         }
     }
 
+    private Expression finishCall(Expression funcName) {
+        List<Expression> args = new ArrayList<>();
+
+        if (!isNextToken(RIGHT_PAREN)) {
+            do {
+                if (args.size() >= 255)
+                    panicErrorCustom(nextToken(), "can't have more than 255 arguments");
+
+                Expression nextArg = expression();
+                args.add(nextArg);
+            } while (matchAtLeast(COMMA));
+        }
+
+        panicError(RIGHT_PAREN, "expect ')' closing arguments of function call");
+        // Why put closeParen after panicError?
+        // panicError check nextToken. If nextToken == ')', then it pass over
+        // then definitely prevToken is ')'.
+        // So if there is any error, check panicError instead of prevToken.
+        Token closeParen = prevToken();
+        return new Call(funcName, closeParen, args);
+    }
+
     /* ---------------- Error handle -------------------- */
 
     /**
+     * Same as {@code error()}
      * @param token - Custom token
      */
-    private ParseError throwError(Token token, String message) {
+    private ParseError panicErrorCustom(Token token, String message) {
         throw new ParseError(token, message);
     }
 
     /**
      * Same as {@code consume()}
      *
-     * @implNote Copy of {@link #throwError(Token, String)}
+     * @implNote Copy of {@link #panicErrorCustom(Token, String)}
      * @implNote If match, current++;
      * @param expected - Give second-chance. If the next token match, then it won't
      *                 throw.

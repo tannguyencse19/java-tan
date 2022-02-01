@@ -31,6 +31,7 @@ public class GenModel {
                 "VarAccess: Token identifer",
                 "Logical: Expression lhs, Token operator, Expression rhs",
                 "Grouping: Expression expr",
+                "Call: Expression funcName, Token closeParen, List<Expression> arguments",
                 "Unary: Token operator, Expression expr",
                 "Assign: Token identifier, Expression value",
                 "Binary: Expression lhs, Token operator, Expression rhs",

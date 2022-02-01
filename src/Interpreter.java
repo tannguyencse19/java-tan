@@ -1,14 +1,17 @@
 package src;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import src.Tan.TanCallable;
 import models.Token;
 import static models.TokenType.*;
 import models.Expression;
 import models.Expression.Literal;
 import models.Expression.Grouping;
 import models.Expression.Logical;
+import models.Expression.Call;
 import models.Expression.Unary;
 import models.Expression.VarAccess;
 import models.Expression.Binary;
@@ -85,7 +88,7 @@ public class Interpreter {
                 switchPattern(e._expr);
             }
             default -> {
-                src.Tan.err.report(0, "Statement error");
+                throwError(s, "Statement error");
             }
         }
     }
@@ -136,7 +139,7 @@ public class Interpreter {
                         else if (lhs instanceof String || rhs instanceof String)
                             return (String) lhs + (String) rhs;
                         else {
-                            throw new RuntimeError(b._operator,
+                            throwError(b._operator,
                                     "two operand of '+' are not type number or string");
                         }
                     case SUBTRACT:
@@ -148,11 +151,11 @@ public class Interpreter {
                     case DIVIDE:
                         verifyNumber(b._operator, "exist an operand of '/' is not a number", lhs, rhs);
                         if ((double) rhs == 0)
-                            throw new RuntimeError(b._operator, "divide by 0");
+                            throwError(b._operator, "divide by 0");
 
                         return (double) lhs / (double) rhs;
                     default:
-                        throw new RuntimeError(b._operator, "unexpected binary operator");
+                        throwError(b._operator, "unexpected binary operator");
                 }
             }
             case Unary u -> {
@@ -168,6 +171,27 @@ public class Interpreter {
                         Tan.err.report(u._operator, "unexpected unary operator");
                         return null;
                 }
+            }
+            case Call c -> {
+                Object callee = switchPattern(c._funcName);
+
+                List<Object> args = new ArrayList<>();
+                for (Expression arg : c._arguments) {
+                    args.add(switchPattern(arg));
+                }
+
+                if (!(callee instanceof TanCallable)) {
+                    throwError(c._closeParen, "function name is not a callable function");
+                }
+
+                TanCallable function = (TanCallable) callee; // find the function prototype
+                if (function.arity() != args.size()) {
+                    throwError(c._closeParen, "Expected " +
+                            function.arity() + " arguments but got " +
+                            args.size());
+                }
+
+                return function.call(this, args);
             }
             case Logical l -> {
                 Object lhs = switchPattern(l._lhs);
@@ -241,15 +265,39 @@ public class Interpreter {
         else if (args.length == 2 && args[0] instanceof Double && args[1] instanceof Double)
             return;
 
-        throw new RuntimeError(operator, message);
+        throwError(operator, message);
     }
+
+    /* ---------------- Error Definition -------------------- */
 
     public class RuntimeError extends RuntimeException {
         final Token token;
+        final Statement stmt;
 
         RuntimeError(Token operator, String message) {
             super(message);
             token = operator;
+            stmt = null;
+        }
+
+        RuntimeError(Statement statement, String message) {
+            super(message);
+            stmt = statement;
+            token = null;
         }
     };
+
+    /**
+     * Wrapper for {@code throw new RuntimeError(token, message)}
+     */
+    private void throwError(Token token, String message) {
+        throw new RuntimeError(token, message);
+    }
+
+    /**
+     * Wrapper for {@code throw new RuntimeError(token, message)}
+     */
+    private void throwError(Statement statement, String message) {
+        throw new RuntimeError(statement, message);
+    }
 }
