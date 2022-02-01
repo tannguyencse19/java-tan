@@ -122,6 +122,9 @@ public class Scanner {
 
             /* --------- Others --------- */
 
+            case ',':
+                addToken(COMMA);
+                break;
             case ';':
                 addToken(SEMI_COLON);
                 break;
@@ -267,7 +270,7 @@ public class Scanner {
         // which cause while loop stop
         // CAUTION: Controversy ';'
         char ch = prevChar();
-        if ((ch == ')' || ch == '}' || ch == ';') && nextNextChar() != '\0')
+        if ((ch == '(' || ch == ')' || ch == '}' || ch == ',' || ch == ';') && nextNextChar() != '\0')
             --current;
     }
 

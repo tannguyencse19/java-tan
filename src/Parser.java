@@ -130,6 +130,7 @@ public class Parser {
                 if (params.size() >= 255)
                     panicErrorCustom(nextToken(), "can't have more than 255 parameters");
 
+                panicError(IDENTIFIER, "expect parameter name");
                 Token nextParam = prevToken();
                 params.add(nextParam);
             } while (matchAtLeast(COMMA));
