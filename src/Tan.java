@@ -11,6 +11,7 @@ import java.util.List;
 import models.Expression;
 import models.Statement;
 import models.Statement.FuncPrototype;
+import src.Interpreter.ReturnException;
 import models.Token;
 import utils.ASTPrint;
 
@@ -73,7 +74,7 @@ public class Tan {
      */
     private static void modeFile(String file) throws IOException {
         System.out.println("\ntan " + file + "\n");
-        byte[] content = Files.readAllBytes(Paths.get("tests/function/helloworld.txt")); // TODO: Debug
+        byte[] content = Files.readAllBytes(Paths.get("tests/function/return_3.txt")); // TODO: Debug
 
         // System.out.println(new String(content)); // test
         run(new String(content, Charset.defaultCharset()));
@@ -102,9 +103,9 @@ public class Tan {
         }
     }
 
-
     public interface TanCallable {
         int arity(); // = number of arguments pre-defined
+
         Object call(Interpreter interpreter, List<Object> args);
     }
 
@@ -128,9 +129,13 @@ public class Tan {
                 local.defineVar(declaration._params.get(idx).getLexeme(), args.get(idx));
             }
 
-            interpreter.runBlock(declaration._blockStmt, local);
+            try {
+                interpreter.runBlock(declaration._blockStmt, local);
+            } catch (ReturnException r) {
+                return r.value;
+            }
 
-            return null; // NOTE: Will fix later
+            return null; // For `return;` in `void` function
         }
 
         @Override

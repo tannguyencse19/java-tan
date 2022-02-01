@@ -21,6 +21,7 @@ import models.Statement;
 import models.Statement.Block;
 import models.Statement.Expr;
 import models.Statement.Print;
+import models.Statement.Return;
 import models.Statement.VarDeclare;
 import models.Statement.While;
 import models.Statement.If;
@@ -161,6 +162,7 @@ public class Parser {
 
             Statement ifStmt = statement();
             // NOTE: No need panicError block syntax as it's handled inside `block()`
+            // NOTE: Check if "pass over SEMI_COLON" is handled by different function
             if (getToken(1).getType() != RIGHT_BRACE) {
                 // CAUTION: Hotfix - Pass over SEMI_COLON if statement is not a block
                 // ++current;
@@ -224,6 +226,18 @@ public class Parser {
         } else if (matchAtLeast(PRINT)) {
             Expression expr = expression(); // CAUTION: Hot-fix - With PrintStatement, need to pass over token Print
             return new Print(expr);
+        } else if (matchAtLeast(RETURN)) {
+            Token keyword = prevToken(); // Use only to keep track return error
+            Expression returnVal = null;
+            if (!isNextToken(SEMI_COLON)) {// Handle no return value edge case
+                returnVal = expression();
+            }
+
+            // CAUTION: Hotfix - Wrapper function have deal with this
+            // This is just "short-circuit"
+            panicError(SEMI_COLON, "return missing ';' at the end");
+            --current;
+            return new Return(keyword, returnVal);
         }
 
         Expression expr = expression();

@@ -22,6 +22,7 @@ import models.Statement;
 import models.Statement.Block;
 import models.Statement.Expr;
 import models.Statement.Print;
+import models.Statement.Return;
 import models.Statement.VarDeclare;
 import models.Statement.If;
 import models.Statement.While;
@@ -99,6 +100,13 @@ public class Interpreter {
             case FuncPrototype fp -> {
                 TanFunction func = new Tan().new TanFunction(fp);
                 env.defineVar(fp._identifer.getLexeme(), func); // add function object
+            }
+            case Return r -> {
+                Object val = null;
+                if (r._returnVal != null)
+                    val = switchPattern(r._returnVal);
+
+                throw new ReturnException(val);
             }
             case Print p -> {
                 Object result = switchPattern(p._expr);
@@ -337,5 +345,14 @@ public class Interpreter {
      */
     private void throwError(Statement statement, String message) {
         throw new RuntimeError(statement, message);
+    }
+
+    public class ReturnException extends RuntimeException {
+        final Object value;
+
+        ReturnException(Object value) {
+            super(null, null, false, false); // HACK: Turn off RuntimeException JVM flag
+            this.value = value;
+        }
     }
 }

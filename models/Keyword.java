@@ -16,13 +16,13 @@ public final class Keyword {
         keywords.put("print", PRINT);
         keywords.put("if", IF);
         keywords.put("else", ELSE);
+        keywords.put("and", LOGIC_AND);
+        keywords.put("or", LOGIC_OR);
         keywords.put("while", WHILE);
         keywords.put("for", FOR);
         keywords.put("function", FUNCTION);
         keywords.put("return", RETURN);
         keywords.put("class", CLASS);
-        keywords.put("and", LOGIC_AND);
-        keywords.put("or", LOGIC_OR);
         // keywords.put("super", SUPER);
         // keywords.put("this", THIS);
     }

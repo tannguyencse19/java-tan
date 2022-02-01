@@ -70,4 +70,14 @@ public interface Statement {
             _blockStmt = blockStmt;
         }
     }
+
+    public static class Return implements Statement {
+        public final Token _keyword;
+        public final Expression _returnVal;
+
+        public Return(Token keyword, Expression returnVal) {
+            _keyword = keyword;
+            _returnVal = returnVal;
+        }
+    }
 }
