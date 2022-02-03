@@ -1,7 +1,9 @@
 package src;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import src.Tan.TanCallable;
@@ -31,6 +33,10 @@ import models.Statement.FuncPrototype;
 public class Interpreter {
     final Environment globals = new Environment();
     private Environment env = globals;
+    /**
+     * Same as {@code locals}
+     */
+    private final Map<Expression, Integer> localVar = new HashMap<>();
 
     Interpreter() {
         globals.defineVar("clock", new TanCallable() {
@@ -50,12 +56,12 @@ public class Interpreter {
         runBlock(ASTList, env);
     }
 
-    /* --------- Helper function --------- */
+    /* ---------------- Helper function -------------------- */
 
     public void runBlock(List<Statement> stmtList, Environment currentEnv) {
         Environment prevEnv = this.env;
         try {
-            this.env = currentEnv; // FOR DEBUG: global scope currentEnv = prevEnv
+            this.env = currentEnv; // FOR DEBUG: global scope prevEnv = null
 
             for (Statement stmt : stmtList) {
                 runStatement(stmt);
@@ -69,8 +75,7 @@ public class Interpreter {
 
     /**
      * @implNote Have to code {@code Object result = switchPattern(e._expr);}
-     *           because
-     *           interface doesn't have fields
+     *           because interface doesn't have fields
      */
     private void runStatement(Statement s) {
         switch (s) {
@@ -99,7 +104,7 @@ public class Interpreter {
             }
             case FuncPrototype fp -> {
                 TanFunction func = new Tan().new TanFunction(fp, env);
-                env.defineVar(fp._identifer.getLexeme(), func); // add function object
+                env.defineVar(fp._identifier.getLexeme(), func); // add function object
             }
             case Return r -> {
                 Object val = null;
@@ -128,8 +133,12 @@ public class Interpreter {
         switch (e) {
             case Assign a -> {
                 Object rhsResult = switchPattern(a._value);
+                Integer distance = localVar.get(a);
 
-                env.assign(a._identifier, rhsResult);
+                if (distance != null)
+                    env.assignAt(distance, a._identifier, rhsResult);
+                else
+                    globals.assign(a._identifier, rhsResult);
 
                 return rhsResult;
             }
@@ -237,7 +246,7 @@ public class Interpreter {
                 return switchPattern(l._rhs);
             }
             case VarAccess va -> {
-                return env.getValue(va._identifer);
+                return lookUpVariable(va._identifer, va);
             }
             case Grouping g -> {
                 return switchPattern(g._expr);
@@ -295,6 +304,33 @@ public class Interpreter {
             return;
 
         throwError(operator, message);
+    }
+
+    /* ---------------- Resolver function -------------------- */
+
+    /**
+     * Same as {@code resolve()}
+     */
+    public void storeResolve(Expression expr, int depth) {
+        localVar.put(expr, depth);
+    }
+
+    /**
+     * @implNote Why prototype must seperate {@code Expression} and
+     *           {@code identifier}?
+     *           <p />
+     *           If code {@code VarAccess}, then we don't have to seperate. But the
+     *           function won't be used for other type of expression. So it must be
+     *           {@code Expression}, but it don't have {@code identifier} field, so
+     *           we have to pass seperately.
+     */
+    private Object lookUpVariable(Token identifier, Expression expr) {
+        Integer distance = localVar.get(expr);
+
+        if (distance != null)
+            return env.getAt(distance, identifier.getLexeme());
+        else
+            return globals.getValue(identifier);
     }
 
     /* ---------------- Error Definition -------------------- */

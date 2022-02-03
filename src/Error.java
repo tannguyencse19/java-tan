@@ -12,10 +12,16 @@ public class Error {
         setError(false);
     }
 
+    /**
+     * Report error and turn on {@code hasError} flag
+     */
     public void report(int line, String message) {
         report(line, "", message); // FIX: where is being skipped
     }
 
+    /**
+     * Report error and turn on {@code hasError} flag
+     */
     public void report(Token token, String message) {
         // NOTE: Don't use tenary to pass argument
         // NOTE: https://stackoverflow.com/a/40521314/12897204
@@ -37,6 +43,9 @@ public class Error {
         setError(true);
     }
 
+    /**
+     * Report error and turn on {@code hasRuntimeError} flag
+     */
     public void report(RuntimeError err) {
         if (err.token != null) {
             System.err.println(err.getMessage() +
@@ -51,7 +60,8 @@ public class Error {
         setRuntimeError(true);
     }
 
-    /* --------- Helper function ---------- */
+    /* ---------------- Helper function -------------------- */
+
     public void setError(Boolean status) {
         _errStatus = status;
     }

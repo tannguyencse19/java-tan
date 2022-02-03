@@ -44,7 +44,7 @@ public class GenModel {
                 "VarDeclare: Token identifier, Expression initializer",
                 "If: Expression condition, Statement ifStmt, Statement elseStmt",
                 "While: Expression condition, Statement body",
-                "FuncPrototype: Token identifer, List<Token> params, List<Statement> blockStmt",
+                "FuncPrototype: Token identifier, List<Token> params, List<Statement> blockStmt",
                 "Return: Token keyword, Expression returnVal"));
     }
 

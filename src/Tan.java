@@ -48,13 +48,25 @@ public class Tan {
         // FIX: Comment out this line when finish
         // if (err.hasError())
         // System.exit(65); // FIX: Define code 65
-        // if (err.hasRuntimeError())
-        // System.exit(70); // FIX: Define code 70
 
         Parser par = new Parser(tokenList);
         List<Statement> ASTList = par.getAST(); // NOTE: For debug
         // new ASTPrint().print(AST);
+
+        // if (err.hasError())
+        // System.exit(66); // FIX: Define code 66
+
+        Resolver res = new Resolver(interpret);
+        res.run(ASTList);
+
+        // if (err.hasError())
+        // System.exit(67); // FIX: Define code 67
+
         interpret.run(ASTList);
+
+        // if (err.hasRuntimeError())
+        // System.exit(68); // FIX: Define code 68
+
         System.out.println("debug");
     }
 
@@ -142,7 +154,7 @@ public class Tan {
 
         @Override
         public String toString() {
-            return "<fn " + declaration._identifer.getLexeme() + ">";
+            return "<fn " + declaration._identifier.getLexeme() + ">";
         }
     }
 }
