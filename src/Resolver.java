@@ -201,6 +201,7 @@ public class Resolver {
      * Mark variable as {@code defined}
      */
     private void define(Token identifier) {
+        if (scopeStack.isEmpty()) return;
         // scopeStack.peek() = currentScope
         scopeStack.peek().put(identifier.getLexeme(), true);
     }
