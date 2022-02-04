@@ -53,7 +53,7 @@ class Environment {
             prevEnv.assign(identifier, value);
         } else
             throw new Interpreter().new RuntimeError(identifier,
-                    "assignement to undefined variable: " + identifier.getLexeme());
+                    "assignment to undefined variable: " + identifier.getLexeme());
     }
 
     /**

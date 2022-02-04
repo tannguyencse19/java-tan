@@ -271,8 +271,19 @@ public class Scanner {
         // CAUTION: Controversy ';'
         char ch = prevChar();
         // if ((ch == '(' || ch == ')' || ch == '}' || ch == ',' || ch == ';') && nextNextChar() != '\0')
-        if (ch == '(' || ch == ')' || ch == '}' || ch == ',' || ch == ';')
-            --current;
+
+        switch (ch) {
+            case '(':
+            case ')':
+            case '}':
+            case ';':
+            case ',':
+            case '.':
+                --current;
+                break;
+            default:
+                break;
+        }
     }
 
     /**
