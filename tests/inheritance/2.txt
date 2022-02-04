@@ -1,1 +1,3 @@
 class Oops < Oops {}
+
+print Oops;

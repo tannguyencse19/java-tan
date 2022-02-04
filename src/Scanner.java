@@ -279,6 +279,7 @@ public class Scanner {
             case ';':
             case ',':
             case '.':
+            case '<':
                 --current;
                 break;
             default:

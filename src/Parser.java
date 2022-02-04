@@ -66,6 +66,7 @@ public class Parser {
         List<Statement> stmtList = new ArrayList<>();
 
         // NOTE: matchPeek already check EOF
+        // CAUTION: Won't work if you just declare a class then do nothing with it
         while (matchPeek(SEMI_COLON)) {
             stmtList.add(declaration());
             // CAUTION: Hotfix - Pass over SEMI_COLON of current statement after finish
@@ -161,7 +162,7 @@ public class Parser {
         Token name = prevToken();
 
         VarAccess superClass = null;
-        if (isNextToken(LESS)) {
+        if (matchAtLeast(LESS)) {
             panicError(IDENTIFIER, "expect superclass name");
             superClass = new VarAccess(prevToken());
         }
