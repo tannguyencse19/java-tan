@@ -219,6 +219,9 @@ public class Tan {
             if (methods.containsKey(fieldName))
                 return methods.get(fieldName);
 
+            if (superClass != null)
+                return superClass.findMethod(fieldName);
+
             return null;
         }
     }
