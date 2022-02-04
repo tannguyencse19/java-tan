@@ -182,10 +182,12 @@ public class Tan {
 
     public class TanClass implements TanCallable {
         private final String identifier;
+        private final TanClass superClass;
         private final Map<String, TanFunction> methods;
 
-        TanClass(String identifier, Map<String, TanFunction> methods) {
+        TanClass(String identifier, TanClass superClass, Map<String, TanFunction> methods) {
             this.identifier = identifier;
+            this.superClass = superClass;
             this.methods = methods;
         }
 

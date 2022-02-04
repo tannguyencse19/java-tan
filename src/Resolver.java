@@ -98,6 +98,12 @@ public class Resolver {
 
                 declare(cd._identifier);
                 define(cd._identifier);
+                if (cd._superClass != null) {// Superclass possible to be a local variable
+                    if (cd._superClass._identifer.getLexeme().equals(cd._identifier.getLexeme()))
+                        throwError(cd._identifier, "A class can't inherit from itself");
+
+                    resolve(cd._superClass);
+                }
 
                 beginScope();
                 scopeStack.peek().put("this", true);

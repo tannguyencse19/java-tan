@@ -49,7 +49,7 @@ public class GenModel {
                 "While: Expression condition, Statement body",
                 "FuncPrototype: Token identifier, List<Token> params, List<Statement> blockStmt",
                 "Return: Token keyword, Expression returnVal",
-                "ClassDeclare: Token identifier, List<FuncPrototype> methods"));
+                "ClassDeclare: Token identifier, VarAccess superClass, List<FuncPrototype> methods"));
     }
 
     /* --------- Helper function --------- */
@@ -69,6 +69,7 @@ public class GenModel {
 
         writer.println("package models;");
         writer.println("import java.util.List;"); // for Block statement
+        writer.println("import models.Expression.VarAccess;"); // for Inheritance
 
         writer.println("public interface " + filename + " {");
         /* --------- start main class --------- */

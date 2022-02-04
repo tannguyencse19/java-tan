@@ -1,5 +1,6 @@
 package models;
 import java.util.List;
+import models.Expression.VarAccess;
 public interface Statement {
 public static class Block implements Statement {
 public final List<Statement> _stmtList;
@@ -65,9 +66,11 @@ _returnVal = returnVal;
 }
 public static class ClassDeclare implements Statement {
 public final Token _identifier;
+public final VarAccess _superClass;
 public final List<FuncPrototype> _methods;
-public ClassDeclare( Token identifier, List<FuncPrototype> methods) {
+public ClassDeclare( Token identifier, VarAccess superClass, List<FuncPrototype> methods) {
 _identifier = identifier;
+_superClass = superClass;
 _methods = methods;
 }
 }

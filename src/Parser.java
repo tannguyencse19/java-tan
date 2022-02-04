@@ -160,6 +160,12 @@ public class Parser {
         panicError(IDENTIFIER, "expect class name");
         Token name = prevToken();
 
+        VarAccess superClass = null;
+        if (isNextToken(LESS)) {
+            panicError(IDENTIFIER, "expect superclass name");
+            superClass = new VarAccess(prevToken());
+        }
+
         panicError(LEFT_BRACE, "expect '{' before class body");
         List<FuncPrototype> methods = new ArrayList<>();
         while (!isNextToken(RIGHT_BRACE) && !endOfFile()) {
@@ -168,7 +174,7 @@ public class Parser {
         }
         panicError(RIGHT_BRACE, "expect '}' after class body");
 
-        return new ClassDeclare(name, methods);
+        return new ClassDeclare(name, superClass, methods);
     }
 
     private Statement statement() {

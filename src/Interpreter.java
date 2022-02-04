@@ -101,6 +101,14 @@ public class Interpreter {
                 env.defineVar(fp._identifier.getLexeme(), func); // add function object
             }
             case ClassDeclare cd -> {
+                Object superClass = null;
+                if (cd._superClass != null) {
+                    superClass = switchPattern(cd._superClass);
+
+                    if (!(superClass instanceof TanClass))
+                        throwError(cd._identifier, "Superclass must be a class");
+                }
+
                 // Store in env so that methods inside class can call it
                 String className = cd._identifier.getLexeme();
                 env.defineVar(className, null);
@@ -112,7 +120,7 @@ public class Interpreter {
                     methods.put(method._identifier.getLexeme(), declaration);
                 }
 
-                TanClass definition = new Tan().new TanClass(className, methods);
+                TanClass definition = new Tan().new TanClass(className, (TanClass)superClass, methods);
                 env.assign(cd._identifier, definition);
             }
             case If i -> {

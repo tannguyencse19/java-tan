@@ -1,5 +1,6 @@
 package models;
 import java.util.List;
+import models.Expression.VarAccess;
 public interface Expression {
 public static class Literal implements Expression {
 public final Object _value;
