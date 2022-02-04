@@ -46,6 +46,7 @@ public class Resolver {
      * Invalid return handling. See page 187.
      */
     private FuncType currentFunction = FuncType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -92,6 +93,9 @@ public class Resolver {
                 resolveFunction(fp, FuncType.FUNCTION);
             }
             case ClassDeclare cd -> {
+                ClassType enclosingClass = currentClass; // for case nested classes
+                currentClass = ClassType.CLASS;
+
                 declare(cd._identifier);
                 define(cd._identifier);
 
@@ -101,8 +105,9 @@ public class Resolver {
                 for (FuncPrototype method : cd._methods) {
                     resolveFunction(method, FuncType.METHOD);
                 }
-                
+
                 endScope();
+                currentClass = enclosingClass;
             }
             case If i -> {
                 resolve(i._condition);
@@ -188,8 +193,12 @@ public class Resolver {
             case Grouping g -> {
                 resolve(g._expr);
             }
-            case This t -> {
-                resolveVariable(t, t._keyword);
+            case This th -> {
+                if (currentClass == ClassType.NONE) {
+                    throwError(th._keyword, "Can't use this outside class");
+                }
+
+                resolveVariable(th, th._keyword);
             }
             case Literal l -> {
                 // nothing
@@ -300,5 +309,13 @@ public class Resolver {
         NONE,
         FUNCTION,
         METHOD
+    }
+
+    /**
+     * Use {@code enum} for inheritance
+     */
+    private enum ClassType {
+        NONE,
+        CLASS
     }
 }
