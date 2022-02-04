@@ -28,6 +28,7 @@ public class GenModel {
                 // param_2_type param_2_name,...
                 // NOTE: Case-sensitive
                 "Literal: Object value", // NOTE: Object is the root of all types => Abstract type
+                "This: Token keyword",
                 "VarAccess: Token identifer",
                 "Logical: Expression lhs, Token operator, Expression rhs",
                 "Grouping: Expression expr",

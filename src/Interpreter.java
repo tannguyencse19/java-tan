@@ -14,6 +14,7 @@ import models.Token;
 import static models.TokenType.*;
 import models.Expression;
 import models.Expression.Literal;
+import models.Expression.This;
 import models.Expression.Grouping;
 import models.Expression.Logical;
 import models.Expression.Call;
@@ -289,6 +290,9 @@ public class Interpreter {
             }
             case Grouping g -> {
                 return switchPattern(g._expr);
+            }
+            case This th -> {
+                return lookUpVariable(th._keyword, th);
             }
             case Literal l -> {
                 return l._value;

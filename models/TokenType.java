@@ -24,7 +24,7 @@ public enum TokenType {
     IF, ELSE,
     WHILE, FOR,
     FUNCTION, RETURN,
-    CLASS,
+    CLASS, THIS, SUPER,
     EOF,
 
     // Others

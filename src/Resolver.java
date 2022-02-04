@@ -8,6 +8,7 @@ import java.util.Stack;
 import models.Token;
 import models.Expression;
 import models.Expression.Literal;
+import models.Expression.This;
 import models.Expression.Grouping;
 import models.Expression.Logical;
 import models.Expression.Call;
@@ -94,9 +95,14 @@ public class Resolver {
                 declare(cd._identifier);
                 define(cd._identifier);
 
+                beginScope();
+                scopeStack.peek().put("this", true);
+
                 for (FuncPrototype method : cd._methods) {
                     resolveFunction(method, FuncType.METHOD);
                 }
+                
+                endScope();
             }
             case If i -> {
                 resolve(i._condition);
@@ -181,6 +187,9 @@ public class Resolver {
             }
             case Grouping g -> {
                 resolve(g._expr);
+            }
+            case This t -> {
+                resolveVariable(t, t._keyword);
             }
             case Literal l -> {
                 // nothing

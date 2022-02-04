@@ -134,6 +134,15 @@ public class Tan {
             this.closure = closure;
         }
 
+        private TanFunction bind(TanInstance instance) {
+            Environment newClosure = new Environment(closure);
+            newClosure.defineVar("this", instance);
+            return new TanFunction(declaration, newClosure);
+            // `get()` is constructed using TanFunction
+            // so we can access it using (this.)declaration
+            // instead of pass as argument
+        }
+
         @Override
         public int arity() {
             return declaration._params.size();
@@ -215,7 +224,7 @@ public class Tan {
             }
             // else if
             TanFunction method = _class.findMethod(field);
-            if (method != null) return method;
+            if (method != null) return method.bind(this);
 
             // else
             // NOTE: Must throw error instead of return NULL

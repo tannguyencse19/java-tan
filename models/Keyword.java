@@ -23,8 +23,8 @@ public final class Keyword {
         keywords.put("function", FUNCTION);
         keywords.put("return", RETURN);
         keywords.put("class", CLASS);
-        // keywords.put("super", SUPER);
-        // keywords.put("this", THIS);
+        keywords.put("this", THIS);
+        keywords.put("super", SUPER);
     }
 
     /**

@@ -8,8 +8,9 @@ import models.Token;
 import models.TokenType;
 import static models.TokenType.*;
 import models.Expression;
-import models.Expression.VarAccess;
 import models.Expression.Literal;
+import models.Expression.This;
+import models.Expression.VarAccess;
 import models.Expression.Logical;
 import models.Expression.Ternary;
 import models.Expression.Call;
@@ -445,6 +446,8 @@ public class Parser {
             return new Grouping(e);
         } else if (matchAtLeast(IDENTIFIER))
             return new VarAccess(prevToken());
+        else if (matchAtLeast(THIS))
+            return new This(prevToken());
         else {
             panicErrorCustom(nextToken(), "Expect expression");
             // FIX: Potential erase current parse result, which isn't Panic Error Handling

@@ -7,6 +7,12 @@ public Literal( Object value) {
 _value = value;
 }
 }
+public static class This implements Expression {
+public final Token _keyword;
+public This( Token keyword) {
+_keyword = keyword;
+}
+}
 public static class VarAccess implements Expression {
 public final Token _identifer;
 public VarAccess( Token identifer) {
