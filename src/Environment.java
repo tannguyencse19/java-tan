@@ -15,7 +15,7 @@ class Environment {
      *
      * @implNote Global scope has {@code prevEnv = null}
      */
-    private final Environment prevEnv;
+    public final Environment prevEnv;
 
     /**
      * Use to create {@code Global} Scope
@@ -95,6 +95,10 @@ class Environment {
     /**
      * Often use in junction with
      * {@link Interpreter#lookUpVariable(Token, Expression)}
+     *
+     * @param identifier - Name of the variable store using
+     *                   {@link #defineVar(String, Object)}. Not name of the
+     *                   {@code Token} or {@code Expression}
      */
     public Object getAt(Integer distance, String identifier) {
         Environment ancestor = ancestor(distance);

@@ -25,6 +25,7 @@ import models.Expression.Binary;
 import models.Expression.Ternary;
 import models.Expression.Assign;
 import models.Expression.Set;
+import models.Expression.Super;
 import models.Statement;
 import models.Statement.Block;
 import models.Statement.ClassDeclare;
@@ -109,9 +110,17 @@ public class Interpreter {
                         throwError(cd._identifier, "Superclass must be a class");
                 }
 
-                // Store in env so that methods inside class can call it
+                // Store in env so that methods inside class can call class itself
                 String className = cd._identifier.getLexeme();
                 env.defineVar(className, null);
+
+                // Same as bind function (method) to this in TanFunction
+                // CAUTION: This snippet must put after the snippet above for inherit to work
+                // class B must be in current closure before create new closure for superClass
+                if (cd._superClass != null) {
+                    env = new Environment(env); // newClosure
+                    env.defineVar("super", superClass);
+                }
 
                 Map<String, TanFunction> methods = new HashMap<>();
                 for (FuncPrototype method : cd._methods) {
@@ -120,7 +129,11 @@ public class Interpreter {
                     methods.put(method._identifier.getLexeme(), declaration);
                 }
 
-                TanClass definition = new Tan().new TanClass(className, (TanClass)superClass, methods);
+                TanClass definition = new Tan().new TanClass(className, (TanClass) superClass, methods);
+
+                if (superClass != null)
+                    env = env.prevEnv; // exit superClass closure
+
                 env.assign(cd._identifier, definition);
             }
             case If i -> {
@@ -302,6 +315,21 @@ public class Interpreter {
             }
             case This th -> {
                 return lookUpVariable(th._keyword, th);
+            }
+            case Super sp -> {
+                // Same as lookUpVariable, but it returns Object
+                // so have to create manually
+                Integer distance = localVar.get(sp);
+
+                TanClass superClass = (TanClass) env.getAt(distance, "super");
+                // HACK: If subclass inherited superclass, then `this` closure always
+                // HACK: 1 step after `super` closure
+                TanInstance currentThis = (TanInstance) env.getAt(distance - 1, "this");
+                TanFunction method = superClass.findMethod(sp._methodName.getLexeme());
+
+                if (method == null)
+                    throwError(sp._methodName, "Undefined property '" + sp._methodName.getLexeme());
+                return method.bind(currentThis); // Able to concurrently access `super` and `this`
             }
             case Literal l -> {
                 return l._value;

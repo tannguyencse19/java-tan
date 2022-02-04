@@ -90,7 +90,7 @@ public class Tan {
      */
     private static void modeFile(String file) throws IOException {
         System.out.println("\ntan " + file + "\n");
-        byte[] content = Files.readAllBytes(Paths.get("tests/inheritance/method.txt")); // TODO: Debug
+        byte[] content = Files.readAllBytes(Paths.get("tests/inheritance/error_3.txt")); // TODO: Debug
 
         // System.out.println(new String(content)); // test
         run(new String(content, Charset.defaultCharset()));
@@ -143,7 +143,7 @@ public class Tan {
          * @param instance - The {@code this}
          * @return Same function with new closure which have {@code this} variable
          */
-        private TanFunction bind(TanInstance instance) {
+        public TanFunction bind(TanInstance instance) {
             Environment newClosure = new Environment(closure);
             newClosure.defineVar("this", instance);
             return new TanFunction(declaration, newClosure, isInitializer);
@@ -215,7 +215,7 @@ public class Tan {
             return instance;
         }
 
-        private TanFunction findMethod(String fieldName) {
+        public TanFunction findMethod(String fieldName) {
             if (methods.containsKey(fieldName))
                 return methods.get(fieldName);
 

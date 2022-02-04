@@ -14,6 +14,14 @@ public This( Token keyword) {
 _keyword = keyword;
 }
 }
+public static class Super implements Expression {
+public final Token _keyword;
+public final Token _methodName;
+public Super( Token keyword, Token methodName) {
+_keyword = keyword;
+_methodName = methodName;
+}
+}
 public static class VarAccess implements Expression {
 public final Token _identifer;
 public VarAccess( Token identifer) {

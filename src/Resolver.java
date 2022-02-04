@@ -19,6 +19,7 @@ import models.Expression.Binary;
 import models.Expression.Ternary;
 import models.Expression.Assign;
 import models.Expression.Set;
+import models.Expression.Super;
 import models.Statement;
 import models.Statement.Block;
 import models.Statement.ClassDeclare;
@@ -96,6 +97,10 @@ public class Resolver {
                 ClassType enclosingClass = currentClass; // for case nested classes
                 currentClass = ClassType.CLASS;
 
+                // CAUTION: Not refactor to currentStack. Each beginScope create
+                // CAUTION: stack so scopeStack.peek() will not be the same between scopes
+                // Map<String, Boolean> currentStack = scopeStack.peek();
+
                 declare(cd._identifier);
                 define(cd._identifier);
                 if (cd._superClass != null) {// Superclass possible to be a local variable
@@ -105,6 +110,15 @@ public class Resolver {
                     resolve(cd._superClass);
                 }
 
+                // Must put this outside to in tandem with Interpreter.java
+                /* begin `super` scope */
+                if (cd._superClass != null) {
+                    currentClass = ClassType.SUBCLASS;
+                    beginScope();
+                    scopeStack.peek().put("super", true);
+                }
+
+                /* begin `this` scope */
                 beginScope();
                 scopeStack.peek().put("this", true);
 
@@ -117,6 +131,12 @@ public class Resolver {
                 }
 
                 endScope();
+                /* end `this` scope */
+
+                if (cd._superClass != null)
+                    endScope();
+                /* end `super` scope */
+
                 currentClass = enclosingClass;
             }
             case If i -> {
@@ -212,6 +232,14 @@ public class Resolver {
                 }
 
                 resolveVariable(th, th._keyword);
+            }
+            case Super sp -> {
+                if (currentClass == ClassType.CLASS)
+                    throwError(sp._keyword, "Can't use super outside subclass");
+                else if (currentClass == ClassType.NONE)
+                    throwError(sp._keyword, "Can't use super outside class");
+
+                resolveVariable(sp, sp._keyword);
             }
             case Literal l -> {
                 // nothing
@@ -330,6 +358,7 @@ public class Resolver {
      */
     private enum ClassType {
         NONE,
-        CLASS
+        CLASS,
+        SUBCLASS
     }
 }

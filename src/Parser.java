@@ -18,6 +18,7 @@ import models.Expression.Get;
 import models.Expression.Unary;
 import models.Expression.Assign;
 import models.Expression.Set;
+import models.Expression.Super;
 import models.Expression.Binary;
 import models.Expression.Grouping;
 import models.Statement;
@@ -70,6 +71,7 @@ public class Parser {
         while (matchPeek(SEMI_COLON)) {
             stmtList.add(declaration());
             // CAUTION: Hotfix - Pass over SEMI_COLON of current statement after finish
+            // CAUTION: Hotfix - Pass over RIGHT_BRACE of nested function, class
             // if match, then ++current; else, no
             matchAtLeast(SEMI_COLON, RIGHT_BRACE);
         }
@@ -87,9 +89,6 @@ public class Parser {
             matchAtLeast(SEMI_COLON, RIGHT_BRACE);
         }
 
-        // CAUTION: Hot-fix - RIGHT_BRACE is the condition to exit while loop
-        // CAUTION: so panicError will never happended except it is endOfFile
-        // panicError(RIGHT_BRACE, "expected '}' to close block");
         if (endOfFile())
             panicErrorCustom(prevToken(), "expected '}' to close block");
 
@@ -150,6 +149,7 @@ public class Parser {
             body = Arrays.asList(statement());
 
         // NOTE: No need panicError block syntax as it's handled inside `block()`
+        // or `classDeclare()`
         if (getToken(1).getType() != RIGHT_BRACE) {
             panicError(SEMI_COLON, "expect ';' at the end of " + kind + " body");
         }
@@ -172,6 +172,9 @@ public class Parser {
         while (!isNextToken(RIGHT_BRACE) && !endOfFile()) {
             FuncPrototype parseMethod = (FuncPrototype) funcStatement("method");
             methods.add(parseMethod);
+            // CAUTION: Hotfix - Since those are methods inside class declaration
+            // CAUTION: It never get to `block()` or `program()`
+            matchAtLeast(SEMI_COLON, RIGHT_BRACE);
         }
         panicError(RIGHT_BRACE, "expect '}' after class body");
 
@@ -455,7 +458,13 @@ public class Parser {
             return new VarAccess(prevToken());
         else if (matchAtLeast(THIS))
             return new This(prevToken());
-        else {
+        else if (matchAtLeast(SUPER)) {
+            Token superToken = prevToken();
+            panicError(DOT, "expect '.' after super");
+            panicError(IDENTIFIER, "expect superclass method name");
+
+            return new Super(superToken, prevToken());
+        } else {
             panicErrorCustom(nextToken(), "Expect expression");
             // FIX: Potential erase current parse result, which isn't Panic Error Handling
             // page 91
