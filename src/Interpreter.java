@@ -97,7 +97,7 @@ public class Interpreter {
                 env.defineVar(vd._identifier.getLexeme(), result);
             }
             case FuncPrototype fp -> {
-                TanFunction func = new Tan().new TanFunction(fp, env);
+                TanFunction func = new Tan().new TanFunction(fp, env, false);
                 env.defineVar(fp._identifier.getLexeme(), func); // add function object
             }
             case ClassDeclare cd -> {
@@ -107,7 +107,8 @@ public class Interpreter {
 
                 Map<String, TanFunction> methods = new HashMap<>();
                 for (FuncPrototype method : cd._methods) {
-                    TanFunction declaration = new Tan().new TanFunction(method, env);
+                    TanFunction declaration = new Tan().new TanFunction(method, env,
+                            method._identifier.getLexeme().equals("init"));
                     methods.put(method._identifier.getLexeme(), declaration);
                 }
 

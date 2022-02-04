@@ -1,0 +1,12 @@
+class Foo {
+    init() {
+        // print this;
+        return;
+    }
+}
+
+var foo = Foo();
+print foo.init();
+
+// Result: <instance of class Foo>
+// Reason: Due to Java class implementation

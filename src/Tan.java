@@ -90,7 +90,7 @@ public class Tan {
      */
     private static void modeFile(String file) throws IOException {
         System.out.println("\ntan " + file + "\n");
-        byte[] content = Files.readAllBytes(Paths.get("tests/class/this_3.txt")); // TODO: Debug
+        byte[] content = Files.readAllBytes(Paths.get("tests/class/init_1.txt")); // TODO: Debug
 
         // System.out.println(new String(content)); // test
         run(new String(content, Charset.defaultCharset()));
@@ -128,16 +128,25 @@ public class Tan {
     public class TanFunction implements TanCallable {
         private final FuncPrototype declaration;
         private final Environment closure;
+        private final boolean isInitializer;
 
-        TanFunction(FuncPrototype declaration, Environment closure) {
+        TanFunction(FuncPrototype declaration, Environment closure, boolean isInitializer) {
             this.declaration = declaration;
             this.closure = closure;
+            this.isInitializer = isInitializer;
         }
 
+        /**
+         * Make function/method able to access {@code this} variable like actual Java,
+         * C++, Python do
+         *
+         * @param instance - The {@code this}
+         * @return Same function with new closure which have {@code this} variable
+         */
         private TanFunction bind(TanInstance instance) {
             Environment newClosure = new Environment(closure);
             newClosure.defineVar("this", instance);
-            return new TanFunction(declaration, newClosure);
+            return new TanFunction(declaration, newClosure, isInitializer);
             // `get()` is constructed using TanFunction
             // so we can access it using (this.)declaration
             // instead of pass as argument
@@ -159,10 +168,10 @@ public class Tan {
             try {
                 interpreter.runBlock(declaration._blockStmt, local);
             } catch (ReturnException r) {
-                return r.value;
+                return (isInitializer) ? closure.getAt(0, "this") : r.value;
             }
 
-            return null; // For `return;` in `void` function
+            return (isInitializer) ? closure.getAt(0, "this") : null; // For `return;` in `void` function
         }
 
         @Override
@@ -187,12 +196,19 @@ public class Tan {
 
         @Override
         public int arity() {
-            return 0;
+            TanFunction initializer = findMethod("init");
+            return (initializer != null) ? initializer.arity() : 0;
         }
 
         @Override
         public Object call(Interpreter interpreter, List<Object> args) {
             TanInstance instance = new TanInstance(this); // FOR DEBUG: what is this?
+            TanFunction initializer = findMethod("init");
+            if (initializer != null)
+                initializer.bind(instance).call(interpreter, args);
+            // initializer.bind(...) == initializer with `this` variable pre-defined
+            // initializer with `this`.call(...) == run initializer code and allow
+            // access `this`
 
             return instance;
         }
@@ -224,7 +240,8 @@ public class Tan {
             }
             // else if
             TanFunction method = _class.findMethod(field);
-            if (method != null) return method.bind(this);
+            if (method != null)
+                return method.bind(this);
 
             // else
             // NOTE: Must throw error instead of return NULL

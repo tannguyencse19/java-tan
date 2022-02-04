@@ -103,7 +103,11 @@ public class Resolver {
                 scopeStack.peek().put("this", true);
 
                 for (FuncPrototype method : cd._methods) {
-                    resolveFunction(method, FuncType.METHOD);
+                    FuncType declaration = FuncType.METHOD;
+                    if (method._identifier.getLexeme().equals("init"))
+                        declaration = FuncType.INITIALIZER;
+
+                    resolveFunction(method, declaration);
                 }
 
                 endScope();
@@ -120,12 +124,15 @@ public class Resolver {
                 resolve(w._body);
             }
             case Return r -> {
-                if (currentFunction == FuncType.NONE) {
-                    throwError(r._keyword, "Can't return from top-level code.");
-                }
+                if (currentFunction == FuncType.NONE)
+                    throwError(r._keyword, "Can't return from top-level code");
 
-                if (r._returnVal != null)
+                if (r._returnVal != null) {
+                    if (currentFunction == FuncType.INITIALIZER)
+                        throwError(r._keyword, "Can't return a value from class initializer");
+
                     resolve(r._returnVal);
+                }
             }
             case Print p -> {
                 resolve(p._expr);
@@ -308,7 +315,8 @@ public class Resolver {
     private enum FuncType {
         NONE,
         FUNCTION,
-        METHOD
+        METHOD,
+        INITIALIZER
     }
 
     /**
