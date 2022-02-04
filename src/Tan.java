@@ -6,12 +6,16 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import models.Expression;
 import models.Statement;
+import models.Statement.ClassDeclare;
 import models.Statement.FuncPrototype;
 import src.Interpreter.ReturnException;
+import src.Interpreter.RuntimeError;
 import models.Token;
 import utils.ASTPrint;
 
@@ -86,7 +90,7 @@ public class Tan {
      */
     private static void modeFile(String file) throws IOException {
         System.out.println("\ntan " + file + "\n");
-        byte[] content = Files.readAllBytes(Paths.get("tests/resolver/4.txt")); // TODO: Debug
+        byte[] content = Files.readAllBytes(Paths.get("tests/class/3.txt")); // TODO: Debug
 
         // System.out.println(new String(content)); // test
         run(new String(content, Charset.defaultCharset()));
@@ -155,6 +159,77 @@ public class Tan {
         @Override
         public String toString() {
             return "<fn " + declaration._identifier.getLexeme() + ">";
+        }
+    }
+
+    public class TanClass implements TanCallable {
+        private final String identifier;
+        private final Map<String, TanFunction> methods;
+
+        TanClass(String identifier, Map<String, TanFunction> methods) {
+            this.identifier = identifier;
+            this.methods = methods;
+        }
+
+        @Override
+        public String toString() {
+            return "<class " + identifier + ">";
+        }
+
+        @Override
+        public int arity() {
+            return 0;
+        }
+
+        @Override
+        public Object call(Interpreter interpreter, List<Object> args) {
+            TanInstance instance = new TanInstance(this); // FOR DEBUG: what is this?
+
+            return instance;
+        }
+
+        private TanFunction findMethod(String fieldName) {
+            if (methods.containsKey(fieldName))
+                return methods.get(fieldName);
+
+            return null;
+        }
+    }
+
+    public class TanInstance {
+        /**
+         * Same as {@code klass}
+         */
+        private final TanClass _class;
+        private final Map<String, Object> fields = new HashMap<>();
+
+        TanInstance(TanClass _class) {
+            this._class = _class;
+        }
+
+        public Object get(Token fieldName) {
+            String field = fieldName.getLexeme();
+
+            if (fields.containsKey(field)) {
+                return fields.get(field);
+            }
+            // else if
+            TanFunction method = _class.findMethod(field);
+            if (method != null) return method;
+
+            // else
+            // NOTE: Must throw error instead of return NULL
+            // page 197
+            throw new Interpreter().new RuntimeError(fieldName, "Undefined property: " + field);
+        }
+
+        public void set(Token fieldName, Object value) {
+            fields.put(fieldName.getLexeme(), value);
+        }
+
+        @Override
+        public String toString() {
+            return "<instance of class " + _class.identifier + ">";
         }
     }
 }

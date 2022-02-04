@@ -270,7 +270,8 @@ public class Scanner {
         // which cause while loop stop
         // CAUTION: Controversy ';'
         char ch = prevChar();
-        if ((ch == '(' || ch == ')' || ch == '}' || ch == ',' || ch == ';') && nextNextChar() != '\0')
+        // if ((ch == '(' || ch == ')' || ch == '}' || ch == ',' || ch == ';') && nextNextChar() != '\0')
+        if (ch == '(' || ch == ')' || ch == '}' || ch == ',' || ch == ';')
             --current;
     }
 

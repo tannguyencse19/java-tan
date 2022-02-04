@@ -11,13 +11,16 @@ import models.Expression.Literal;
 import models.Expression.Grouping;
 import models.Expression.Logical;
 import models.Expression.Call;
+import models.Expression.Get;
 import models.Expression.Unary;
 import models.Expression.VarAccess;
 import models.Expression.Binary;
 import models.Expression.Ternary;
 import models.Expression.Assign;
+import models.Expression.Set;
 import models.Statement;
 import models.Statement.Block;
+import models.Statement.ClassDeclare;
 import models.Statement.Expr;
 import models.Statement.Print;
 import models.Statement.Return;
@@ -81,6 +84,20 @@ public class Resolver {
 
                 define(vd._identifier);
             }
+            case FuncPrototype fp -> {
+                declare(fp._identifier); // == prototype
+                define(fp._identifier);
+
+                resolveFunction(fp, FuncType.FUNCTION);
+            }
+            case ClassDeclare cd -> {
+                declare(cd._identifier);
+                define(cd._identifier);
+
+                for (FuncPrototype method : cd._methods) {
+                    resolveFunction(method, FuncType.METHOD);
+                }
+            }
             case If i -> {
                 resolve(i._condition);
                 resolve(i._ifStmt);
@@ -98,13 +115,6 @@ public class Resolver {
 
                 if (r._returnVal != null)
                     resolve(r._returnVal);
-            }
-            case FuncPrototype fp -> {
-
-                declare(fp._identifier); // == prototype
-                define(fp._identifier);
-
-                resolveFunction(fp, FuncType.FUNCTION);
             }
             case Print p -> {
                 resolve(p._expr);
@@ -125,8 +135,15 @@ public class Resolver {
     private void runExpression(Expression e) {
         switch (e) {
             case Assign a -> {
+                // Right-to-left
                 resolve(a._value);
                 resolveVariable(a, a._identifier);
+            }
+            case Set s -> {
+                // Right-to-left
+                resolve(s._value);
+                resolve(s._object);
+                // Since properties are looked up dynamically, they don’t get resolved
             }
             case Ternary t -> {
                 resolve(t._rhs_second);
@@ -146,18 +163,21 @@ public class Resolver {
                     resolve(arg);
                 }
             }
+            case Get g -> {
+                resolve(g._object);
+                // Since properties are looked up dynamically, they don’t get resolved
+            }
             case Logical l -> {
                 resolve(l._lhs);
                 resolve(l._rhs);
             }
             case VarAccess va -> {
-                Map<String, Boolean> currentScope = scopeStack.peek();
-                String identifier = va._identifer.getLexeme();
-                if (!scopeStack.isEmpty() && currentScope.get(identifier) == Boolean.FALSE) {
-                    throwError(va._identifer, "Can't read local variable in its own initializer");
+                Token identifier = va._identifer;
+                if (!scopeStack.isEmpty() && scopeStack.peek().get(identifier.getLexeme()) == Boolean.FALSE) {
+                    throwError(identifier, "Can't read local variable in its own initializer");
                 }
 
-                resolveVariable(va, va._identifer);
+                resolveVariable(va, identifier);
             }
             case Grouping g -> {
                 resolve(g._expr);
@@ -201,7 +221,8 @@ public class Resolver {
      * Mark variable as {@code defined}
      */
     private void define(Token identifier) {
-        if (scopeStack.isEmpty()) return;
+        if (scopeStack.isEmpty())
+            return;
         // scopeStack.peek() = currentScope
         scopeStack.peek().put(identifier.getLexeme(), true);
     }
@@ -268,6 +289,7 @@ public class Resolver {
 
     private enum FuncType {
         NONE,
-        FUNCTION
+        FUNCTION,
+        METHOD
     }
 }

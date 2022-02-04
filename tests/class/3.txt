@@ -1,0 +1,11 @@
+class Bacon {
+    eat() {
+        print "Crunch crunch crunch!";
+    }
+}
+
+Bacon().eat(); // Prints "Crunch crunch crunch!".
+print Bacon().eat // <fn eat>
+
+// Test src.Tan.TanInstance _class.findMethod()
+// If can't find a matching field, try to find a method with that name

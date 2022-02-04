@@ -32,8 +32,10 @@ public class GenModel {
                 "Logical: Expression lhs, Token operator, Expression rhs",
                 "Grouping: Expression expr",
                 "Call: Expression funcName, Token closeParen, List<Expression> arguments",
+                "Get: Expression object, Token propName",
                 "Unary: Token operator, Expression expr",
                 "Assign: Token identifier, Expression value",
+                "Set: Expression object, Token propName, Expression value",
                 "Binary: Expression lhs, Token operator, Expression rhs",
                 "Ternary: Expression lhs, Token operator, Expression rhs_first, Expression rhs_second"));
 
@@ -45,7 +47,8 @@ public class GenModel {
                 "If: Expression condition, Statement ifStmt, Statement elseStmt",
                 "While: Expression condition, Statement body",
                 "FuncPrototype: Token identifier, List<Token> params, List<Statement> blockStmt",
-                "Return: Token keyword, Expression returnVal"));
+                "Return: Token keyword, Expression returnVal",
+                "ClassDeclare: Token identifier, List<FuncPrototype> methods"));
     }
 
     /* --------- Helper function --------- */

@@ -63,4 +63,12 @@ _keyword = keyword;
 _returnVal = returnVal;
 }
 }
+public static class ClassDeclare implements Statement {
+public final Token _identifier;
+public final List<FuncPrototype> _methods;
+public ClassDeclare( Token identifier, List<FuncPrototype> methods) {
+_identifier = identifier;
+_methods = methods;
+}
+}
 }

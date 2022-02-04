@@ -39,6 +39,14 @@ _closeParen = closeParen;
 _arguments = arguments;
 }
 }
+public static class Get implements Expression {
+public final Expression _object;
+public final Token _propName;
+public Get( Expression object, Token propName) {
+_object = object;
+_propName = propName;
+}
+}
 public static class Unary implements Expression {
 public final Token _operator;
 public final Expression _expr;
@@ -52,6 +60,16 @@ public final Token _identifier;
 public final Expression _value;
 public Assign( Token identifier, Expression value) {
 _identifier = identifier;
+_value = value;
+}
+}
+public static class Set implements Expression {
+public final Expression _object;
+public final Token _propName;
+public final Expression _value;
+public Set( Expression object, Token propName, Expression value) {
+_object = object;
+_propName = propName;
 _value = value;
 }
 }

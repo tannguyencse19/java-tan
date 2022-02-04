@@ -13,8 +13,10 @@ import models.Expression.Literal;
 import models.Expression.Logical;
 import models.Expression.Ternary;
 import models.Expression.Call;
+import models.Expression.Get;
 import models.Expression.Unary;
 import models.Expression.Assign;
+import models.Expression.Set;
 import models.Expression.Binary;
 import models.Expression.Grouping;
 import models.Statement;
@@ -26,6 +28,7 @@ import models.Statement.VarDeclare;
 import models.Statement.While;
 import models.Statement.If;
 import models.Statement.FuncPrototype;
+import models.Statement.ClassDeclare;
 
 public class Parser {
     /**
@@ -97,6 +100,8 @@ public class Parser {
                 return varStatement();
             else if (matchAtLeast(FUNCTION))
                 return funcStatement("function");
+            else if (matchAtLeast(CLASS))
+                return classStatement();
 
             return statement();
         } catch (ParseError err) {
@@ -119,9 +124,7 @@ public class Parser {
 
     private Statement funcStatement(String kind) {
         // NOTE: Differentiate between function and class function (method)
-
         panicError(IDENTIFIER, "expect " + kind + " name");
-
         Token identifier = prevToken();
 
         panicError(LEFT_PAREN, "expect " + kind + " parameters");
@@ -150,6 +153,21 @@ public class Parser {
         }
 
         return new FuncPrototype(identifier, params, body);
+    }
+
+    private Statement classStatement() {
+        panicError(IDENTIFIER, "expect class name");
+        Token name = prevToken();
+
+        panicError(LEFT_BRACE, "expect '{' before class body");
+        List<FuncPrototype> methods = new ArrayList<>();
+        while (!isNextToken(RIGHT_BRACE) && !endOfFile()) {
+            FuncPrototype parseMethod = (FuncPrototype) funcStatement("method");
+            methods.add(parseMethod);
+        }
+        panicError(RIGHT_BRACE, "expect '}' after class body");
+
+        return new ClassDeclare(name, methods);
     }
 
     private Statement statement() {
@@ -263,6 +281,10 @@ public class Parser {
             if (lhs instanceof VarAccess) {
                 Token identifier = ((VarAccess) lhs)._identifer;
                 return new Assign(identifier, rhs);
+            } else if (lhs instanceof Get) {
+                Get getExpr = (Get) lhs;
+
+                return new Set(getExpr._object, getExpr._propName, rhs);
             }
 
             panicErrorCustom(equal, "Invalid assignment identiifier");
@@ -387,14 +409,21 @@ public class Parser {
     }
 
     private Expression call() {
-        Expression curry = primary(); // also funcName
+        /**
+         * It's the funcName. A.k.a {@code expr}
+         */
+        Expression curry = primary();
 
         while (true) {
-            if (matchAtLeast(LEFT_PAREN)) {
+            if (matchAtLeast(LEFT_PAREN))
                 curry = finishCall(curry);
-            } else {
+            else if (matchAtLeast(DOT)) {
+                panicError(IDENTIFIER, "Expect property name after '.'");
+                Token propName = prevToken();
+
+                curry = new Get(curry, propName);
+            } else
                 break;
-            }
         }
 
         return curry;

@@ -7,7 +7,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import src.Tan.TanCallable;
+import src.Tan.TanClass;
 import src.Tan.TanFunction;
+import src.Tan.TanInstance;
 import models.Token;
 import static models.TokenType.*;
 import models.Expression;
@@ -16,12 +18,15 @@ import models.Expression.Grouping;
 import models.Expression.Logical;
 import models.Expression.Call;
 import models.Expression.Unary;
+import models.Expression.Get;
 import models.Expression.VarAccess;
 import models.Expression.Binary;
 import models.Expression.Ternary;
 import models.Expression.Assign;
+import models.Expression.Set;
 import models.Statement;
 import models.Statement.Block;
+import models.Statement.ClassDeclare;
 import models.Statement.Expr;
 import models.Statement.Print;
 import models.Statement.Return;
@@ -90,6 +95,24 @@ public class Interpreter {
                 }
                 env.defineVar(vd._identifier.getLexeme(), result);
             }
+            case FuncPrototype fp -> {
+                TanFunction func = new Tan().new TanFunction(fp, env);
+                env.defineVar(fp._identifier.getLexeme(), func); // add function object
+            }
+            case ClassDeclare cd -> {
+                // Store in env so that methods inside class can call it
+                String className = cd._identifier.getLexeme();
+                env.defineVar(className, null);
+
+                Map<String, TanFunction> methods = new HashMap<>();
+                for (FuncPrototype method : cd._methods) {
+                    TanFunction declaration = new Tan().new TanFunction(method, env);
+                    methods.put(method._identifier.getLexeme(), declaration);
+                }
+
+                TanClass definition = new Tan().new TanClass(className, methods);
+                env.assign(cd._identifier, definition);
+            }
             case If i -> {
                 if (truthy(switchPattern(i._condition)))
                     runStatement(i._ifStmt);
@@ -101,10 +124,6 @@ public class Interpreter {
             case While w -> {
                 while (truthy(switchPattern(w._condition)))
                     runStatement(w._body);
-            }
-            case FuncPrototype fp -> {
-                TanFunction func = new Tan().new TanFunction(fp, env);
-                env.defineVar(fp._identifier.getLexeme(), func); // add function object
             }
             case Return r -> {
                 Object val = null;
@@ -141,6 +160,17 @@ public class Interpreter {
                     globals.assign(a._identifier, rhsResult);
 
                 return rhsResult;
+            }
+            case Set s -> {
+                Object obj = switchPattern(s._object);
+
+                if (!(obj instanceof TanInstance)) {
+                    throwError(s._propName, "object is not an instance of class");
+                }
+
+                Object value = switchPattern(s._value);
+                ((TanInstance) obj).set(s._propName, value);
+                return value;
             }
             case Ternary t -> {
                 Object rhs_second = switchPattern(t._rhs_second);
@@ -230,6 +260,15 @@ public class Interpreter {
                 }
 
                 return function.call(this, args);
+            }
+            case Get g -> {
+                Object obj = switchPattern(g._object);
+
+                if (!(obj instanceof TanInstance)) {
+                    throwError(g._propName, "object is not an instance of class");
+                }
+
+                return ((TanInstance) obj).get(g._propName);
             }
             case Logical l -> {
                 Object lhs = switchPattern(l._lhs);
